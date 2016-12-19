@@ -1,0 +1,23 @@
+/*iOS STATUS BAR*/
+
+
+body.ios{
+padding:20px 0 0 0;
+box-sizing:border-box;
+}
+body.ios:after{
+content:'';
+display:block;
+position:fixed;
+top:0;
+left:0;
+right:0;
+height:20px;
+z-index:100;
+background:whitesmoke;
+}
+body.ios div.overlay,
+body.ios div.app_page > a.close_button,
+body.ios div.photo_panel{
+top:20px;
+}

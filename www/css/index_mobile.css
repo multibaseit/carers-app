@@ -1,0 +1,102 @@
+@media all and (max-width:30em){
+
+
+/*LAYOUT*/
+
+div.app_layout{
+padding:3em 0;
+font-size:112.5%;
+}
+
+
+
+/*OVERLAYS*/
+
+div.overlay_inner{
+padding:2em 0;
+}
+
+
+
+/*LOGIN PAGE*/
+
+div.login_logo{
+margin:-2em auto 0 auto;
+}
+
+
+
+/*ROSTER*/
+
+li.roster_item{
+padding:1em 0.5em;
+border-top:1px solid lightgrey;
+}
+li.roster_divider{
+border-top:0.25em solid lightgrey;
+}
+span.roster_date{
+display:none;
+visibility:visible;
+float:none;
+margin:0 auto;
+}
+li.roster_divider span.roster_date{
+display:block;
+}
+span.roster_short_date{
+display:none;
+visibility:visible;
+float:none;
+height:auto;
+width:auto;
+line-height:normal;
+margin:0.25em -0.5em 1em -0.5em;
+padding:0 0 1em 0;
+text-align:center;
+border-bottom:1px solid lightgrey;
+}
+li.roster_divider span.roster_short_date{
+display:block;
+}
+
+
+
+/*ROSTER PAGE - SEARCH RESULTS*/
+
+ul.roster_list_filtered span.roster_date,
+ul.roster_list_filtered span.roster_short_date{
+display:block;
+}
+ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_date,
+ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_short_date{
+display:none;
+}
+
+
+
+/*APPOINTMENT PAGE - NOTES*/
+
+li.note_item{
+padding:1em 0.5em;
+}
+
+
+
+}
+
+
+
+
+@media all and (max-width:20em){
+
+
+/*LAYOUT*/
+
+div.app_layout{
+font-size:100%;
+}
+
+
+
+}
