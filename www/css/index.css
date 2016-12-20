@@ -258,6 +258,9 @@ form.login_form h2{
 margin:0.415em 0 0.83em 0;
 padding:0;
 }
+form.login_form label{
+display:none;
+}
 form.login_form input[type=submit]{
 max-width:60%;
 }
