@@ -254,6 +254,8 @@ var carersApp={
 					});
 				});
 			//Roster search
+				$('#search_form_value').val('');
+				$('.roster_filter_clear').hide();				
 				$('.search_form').on('submit',function(){
 					$('#search_form_value').blur();
 					return false;
