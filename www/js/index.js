@@ -1,178 +1,240 @@
-var carersApp={
+var App={
 	
 	
 	
 	//INITIALISATION
 	
-	//Initialise application
-	initialise:function(){
-		//Back button
-			document.addEventListener('backbutton',carersApp.handleBackButton,false);
-		//Connection state
-			document.addEventListener('online',carersApp.processQueue,false);
-		//iOS
-			if(/constructor/i.test(window.HTMLElement))$('body').addClass('ios');
-		//Login
-			$('.login_form').on('submit',carersApp.submitLogin);
-		//Roster
-			carersApp.template.rosterItem=$('.roster_list').html().replace(/\t|\r|\n/gi,'');
-		//Appointment
-			carersApp.template.appointmentForm=$('.appointment_form').html().replace(/\t|\r|\n/gi,'');
-			carersApp.template.noteItem=$('.note_list').html().replace(/\t|\r|\n/gi,'');
-			carersApp.template.signaturePanel=$('.signature_layout').html().replace(/\t|\r|\n/gi,'');
-		//First page
-			carersApp.showPage('.login_page');
-			//carersApp.loadRoster();
-			//carersApp.buildAppointmentForm(0);
-	},
+	//Function customisations
+	/*
+	initialise
+	handleBackButton
+	authenticateLogin
+	loadListData
+	buildList
+	buildForm
+	addFormItems
+	submitForm
+	validateForm
+	processQueue
+	uploadImageFile
+	*/
+	
+	//Local storage name prefix
+		prefix:'ca',
+		
+	//Data lifetime value (ms)
+		timeout:3600000,
+	
 	//Persistent variables
 		data:{
-			//Session values for appointment form clock panel
-				clock:{},
-			//Session values for appointment form signature panel
-				signature:{},
-			//Session values for appointment form photo panel
-				photo:{},
-			//Session values for roster map panel
-				map:{},
-			//Data for appointment form note panel 
-				notes:[
-					'Shortness of breath.',
-					'Reduced appetite, food left uneaten.',
-					'Walking very slowly and difficulty balancing.',
-					'Unable to toilet.',
-					'Unable to manage showering alone.',
-					'Too unwell to leave the house for appointment.'
-				]
+			list:{},
+			clock:{},
+			signature:{},
+			photo:{},
+			map:{},
+			notes:[
+				'Shortness of breath.',
+				'Reduced appetite, food left uneaten.',
+				'Walking very slowly and difficulty balancing.',
+				'Unable to toilet.',
+				'Unable to manage showering alone.',
+				'Too unwell to leave the house for appointment.'
+			]
 		},
-		//HTML templates for repeaters
+	
+	//HTML templates for repeaters
 		template:{},
+		
+	//Text strings for prompts and alerts
+		message:{
+			logOutPrompt:'You will be logged out',
+			invalidLogin:'Please enter a valid username and password',
+			offlineUpdate:'Your roster will be updated next time your device is online',
+			itemCompleted:'This appointment has been completed',
+			noItems:'You have no appointments scheduled',
+			updateError:'Your roster could not be updated due to a server error',
+			noMapAvailable:'Maps are not available for this appointment',
+			noGeolocation:'Maps cannot be used offline or if location services are unavailable',
+			googleError:'An error has occurred at Google Maps',
+			locationError:'Your location cannot be determined',
+			noCamera:'No camera is available',
+			cancelForm:'Information you have entered for this appointment will be discarded',
+			incompleteForm:'Please complete this form before saving',
+			clockValidation:'The start time must be earlier than the finish time'
+		},
+	
+	//Initialise application
+		initialise:function(){
+			//iOS stylesheet
+				if(/constructor/i.test(window.HTMLElement))$('body').addClass('ios');
+				else if(window.StatusBar)StatusBar.overlaysWebView(false);
+			//HTML templates
+				App.template.rosterItem=$('.list_items').html().replace(/\t|\r|\n/gi,'');
+				App.template.itemForm=$('.item_form').html().replace(/\t|\r|\n/gi,'');
+				App.template.noteItem=$('.note_list').html().replace(/\t|\r|\n/gi,'');
+				App.template.signaturePanel=$('.signature_layout').html().replace(/\t|\r|\n/gi,'');
+				App.template.directionStep=$('.directions_list').html().replace(/\t|\r|\n/gi,'');
+			//Login form handler
+				$('.login_form').on('submit',App.submitLogin);
+			//First page
+				App.showPage('.login_page');
+				//App.loadListData();
+				//App.buildForm(0);
+		},
 	
 	
 	
 	//UTILITIES
 	
 	//Show a page
-	showPage:function(page,timer){
-		if($('.active_page')[0]){
-			if(timer==0){
-				$('.active_page').hide();
-				$('body').scrollTop(0);
-				$('.active_page').removeClass('active_page');
-				$(page).show().addClass('active_page');
-			}
-			else{
-				$('.active_page').fadeOut(function(){
+		showPage:function(page,timer){
+			if($('.active_page')[0]){
+				if(timer==0){
+					$('.active_page').hide();
 					$('body').scrollTop(0);
 					$('.active_page').removeClass('active_page');
-					$(page).fadeIn(function(){
-						$(page).addClass('active_page');
+					$(page).show().addClass('active_page');
+				}
+				else{
+					$('.active_page').fadeOut(function(){
+						$('body').scrollTop(0);
+						$('.active_page').removeClass('active_page');
+						$(page).fadeIn(function(){
+							$(page).addClass('active_page');
+						});
 					});
-				});
+				}
 			}
-		}
-		else $(page).fadeIn(function(){
-			$(page).addClass('active_page');
-		});
-	},	
-	
+			else $(page).fadeIn(function(){
+				$(page).addClass('active_page');
+			});
+		},
+		
 	//Display notification or confirmation dialogue
-	showMessage:function(type,text,process){
-		if(type=='confirm')$('.confirm_button').show();
-		else $('.confirm_button').hide();
-		$('.error_page span.fa').not('.confirm_buttons span.fa').hide();
-		$('.error_page span.icon_'+type).show();
-		$('.error_text').html(text.replace(/\.\s\b/gi,'.<br/><br/>'));
-		//$('body').addClass('no_scroll');
-		if(window.navigator.vibrate&&type=='error')window.navigator.vibrate(200);
-		$('.error_page').removeClass('error confirm warning notification').addClass(type+' active_overlay').fadeIn(function(){
-			if(typeof process=='function'&&type!='confirm')(process)();
-			$(this).find('.close_button, .confirm_no').off().on('click',function(){
-				$('.error_page').removeClass('active_overlay').fadeOut();
-				//$('body').removeClass('no_scroll');
+		showMessage:function(type,text,process){
+			if(type=='confirm')$('.confirm_button').show();
+			else $('.confirm_button').hide();
+			$('.error_page span.fa').not('.confirm_buttons span.fa').hide();
+			$('.error_page span.icon_'+type).show();
+			$('.error_text').html(text.replace(/\.\s\b/gi,'.<br/><br/>'));
+			if(window.navigator.vibrate&&type=='error')window.navigator.vibrate(200);
+			$('.error_page').removeClass('error confirm warning notification').addClass(type+' active_overlay').fadeIn(function(){
+				if(typeof process=='function'&&type!='confirm')(process)();
+				$(this).find('.close_button, .confirm_no').off().on('click',function(){
+					$('.error_page').removeClass('active_overlay').fadeOut();
+				});
+				$(this).find('.confirm_yes').off().on('click',function(){
+					(process)();
+					$('.error_page').removeClass('active_overlay').fadeOut();
+				});
 			});
-			$(this).find('.confirm_yes').off().on('click',function(){
-				//$('body').removeClass('no_scroll');
-				(process)();
-				$('.error_page').removeClass('active_overlay').fadeOut();
+		},
+
+	//Show and hide form overlay
+		showFormOverlay:function(overlay,process){
+			$('body').addClass('no_scroll');
+			$(overlay).addClass('active_overlay').fadeIn(function(){
+				if(typeof process=='function')(process)();
 			});
-		});
-	},
-	
+		},
+		hideFormOverlay:function(process){
+			if(typeof process=='function')(process)();
+			$('body').removeClass('no_scroll');
+			$('.active_overlay').removeClass('active_overlay').fadeOut(function(){
+				$('.overlay_icon').removeClass('loading');
+			});
+		},
+		
 	//Format date strings
-	processDate:function(dateObj){
-		if(typeof dateObj!='object'){
-			var s=dateObj.split('/');
-			dateObj=new Date();
-			dateObj.setFullYear(s[2],parseInt(s[1])-1,s[0]);
-		}
-		dateObj.time=dateObj.getTime();
-		dateObj.dd=parseInt(dateObj.getDate());
-		dateObj.mm=parseInt(dateObj.getMonth()+1);
-		dateObj.yyyy=dateObj.getFullYear();
-		dateObj.hour=((dateObj.getHours()<10)?'0':'')+dateObj.getHours();
-		dateObj.min=((dateObj.getMinutes()<10)?'0':'')+dateObj.getMinutes();
-		dateObj.dateFormat=dateObj.dd+'/'+dateObj.mm+'/'+dateObj.yyyy;
-		dateObj.shortDateFormat=dateObj.dd+'/'+dateObj.mm;
-		dateObj.timeFormat=dateObj.hour+':'+dateObj.min;
-		var d=['Su','Mo','Tu','We','Th','Fr','Sa'];
-		dateObj.dayFormat=d[dateObj.getDay()];
-		return dateObj;
-	},
-	
+		processDate:function(dateObj){
+			if(typeof dateObj!='object'){
+				var s=dateObj.split('/');
+				dateObj=new Date();
+				dateObj.setFullYear(s[2],parseInt(s[1])-1,s[0]);
+			}
+			dateObj.time=dateObj.getTime();
+			dateObj.dd=parseInt(dateObj.getDate());
+			dateObj.mm=parseInt(dateObj.getMonth()+1);
+			dateObj.yyyy=dateObj.getFullYear();
+			dateObj.hour=((dateObj.getHours()<10)?'0':'')+dateObj.getHours();
+			dateObj.min=((dateObj.getMinutes()<10)?'0':'')+dateObj.getMinutes();
+			dateObj.dateFormat=dateObj.dd+'/'+dateObj.mm+'/'+dateObj.yyyy;
+			dateObj.shortDateFormat=dateObj.dd+'/'+dateObj.mm;
+			dateObj.timeFormat=dateObj.hour+':'+dateObj.min;
+			var d=['Su','Mo','Tu','We','Th','Fr','Sa'];
+			dateObj.dayFormat=d[dateObj.getDay()];
+			return dateObj;
+		},
+		
+	//Generate natural language last update string from timestamp
+		lastUpdateText:function(timestamp){
+			var t=new Date().getTime(),
+				m=Math.floor((t-timestamp)/60000),
+				h=Math.floor((t-timestamp)/3600000),
+				d=Math.floor((t-timestamp)/86400000),
+				u='a few seconds ago';
+			if(d>0)u=(d==1)?'yesterday':d+' days ago';
+			else if(h>0)u=h+' hour'+((h>1)?'s':'')+' ago';
+			else if(m>0)u=m+' minute'+((m>1)?'s':'')+' ago';
+			return u;
+		},
+		
 	//Intercept device back button
-	handleBackButton:function(){
-		if($('.active_overlay')[0]){
-			$('.active_overlay').removeClass('active_overlay').fadeOut();
-			return true;
-		}
-		if($('.login_page').hasClass('active_page')){
-			navigator.app.exitApp();
-			return true;
-		}
-		if($('.roster_page').hasClass('active_page')){
-			carersApp.showMessage('confirm','You will be logged out',carersApp.logOut);
-			return true;
-		}
-		if($('.appointment_page').hasClass('active_page')){
-			carersApp.cancelAppointment();
-			return true;
-		}
-	},
+		handleBackButton:function(){
+			if($('.active_overlay')[0]){
+				$('.active_overlay').removeClass('active_overlay').fadeOut();
+				return true;
+			}
+			if($('.login_page').hasClass('active_page')){
+				navigator.app.exitApp();
+				return true;
+			}
+			if($('.list_page').hasClass('active_page')){
+				App.showMessage('confirm',App.message.logOutPrompt,App.logOut);
+				return true;
+			}
+			if($('.form_page').hasClass('active_page')){
+				App.cancelForm();
+				return true;
+			}
+		},
 	
 	
 	
-	//LOGIN
+	//LOGIN PAGE
 	
-	//Submit login credentials
-	submitLogin:function(){
-		var fail=false;
-		if(!$('#user').val()||!$('#pass').val())fail=true;
-		else{
-			if(carersApp.authenticateLogin()==true)carersApp.loadRoster();
-			else fail=true;
-		}
-		if(fail)carersApp.showMessage('error','Please enter a valid username and password');
-		return false;
-	},
+	//Submit login form
+		submitLogin:function(){
+			var fail=false;
+			if(!$('#user').val()||!$('#pass').val())fail=true;
+			else{
+				if(App.authenticateLogin()==true)App.loadListData();
+				else fail=true;
+			}
+			if(fail)App.showMessage('error',App.message.invalidLogin);
+			return false;
+		},
+		
 	//Check login credentials
 		authenticateLogin:function(){
 			return true;
 		},
+	
+	//Log out
 		logOut:function(){
-			carersApp.showPage('.login_page',0);
+			App.showPage('.login_page',0);
 		},
 	
 	
 	
-	//ROSTER
+	//LIST PAGE
 	
-	//Load roster data (Roster step 1)
-	loadRoster:function(force){
+	//Load list data from server
+	loadListData:function(force){
 		if(window.navigator.onLine==true){
-			if(new Date().getTime()>parseInt(window.localStorage.getItem('ca-roster-time'))+1800000||
-				window.localStorage.getItem('ca-roster-time')==null||
-				window.localStorage.getItem('ca-roster')==null||
+			if(new Date().getTime()>parseInt(window.localStorage.getItem(App.prefix+'-update-time'))+App.timeout||
+				window.localStorage.getItem(App.prefix+'-update-time')==null||
+				window.localStorage.getItem(App.prefix+'-data')==null||
 				force==true){
 					$.ajax({
 						url:'https://www.multibaseit.com.au/ca/roster.aspx',
@@ -180,302 +242,485 @@ var carersApp={
 						crossDomain:true,
 						data:{
 							time:new Date().getTime(),
-							method:'get_roster'
+							method:'get_roster',
+							carer_id:'1'
 						},
 						timeout:10000,
 						success:function(data,status,request){
-							carersApp.storeLocalRoster(data);
+							App.storeLocalData(data);
 						},
 						error:function(request,status,error){
-							carersApp.showServerError(request,status,error);
+							App.showServerError(request,status,error);
 						}
 					});
 			}
-			else carersApp.buildRosterList();
+			else App.buildList();
 		}
 		else{
-			if(!$('.error_page').hasClass('active_overlay'))carersApp.showMessage('warning','Your roster cannot be updated while your device is offline',carersApp.buildRosterList);
-			else carersApp.buildRosterList();
+			if(!$('.error_page').hasClass('active_overlay'))App.showMessage('warning',App.message.offlineUpdate,App.buildList);
+			else App.buildList();
 		}
 	},
-	//Store loaded roster data (Roster step 2) 
-		storeLocalRoster:function(data){
-			window.localStorage.setItem('ca-roster',JSON.stringify(data));
-			window.localStorage.setItem('ca-roster-time',new Date().getTime());
-			carersApp.buildRosterList();
+		
+	//Store loaded list data 
+		storeLocalData:function(data){
+			window.localStorage.setItem(App.prefix+'-data',JSON.stringify(data));
+			window.localStorage.setItem(App.prefix+'-update-time',new Date().getTime());
+			App.buildList();
 		},
-	//Display loaded roster data (Roster step 3)
-		buildRosterList:function(){
-			var r=JSON.parse(window.localStorage.getItem('ca-roster'));
-			if(!$.isEmptyObject(r)){
-				var i=0,s,h=[],l,d,n=new Date();
+		
+	//Generate list HTML
+		buildList:function(){
+			var l=JSON.parse(window.localStorage.getItem(App.prefix+'-data'));
+			if(!$.isEmptyObject(l)){
+				var i=0,s,h=[],p,d,n=new Date();
 				n.setHours(0);
 				n.setMinutes(0);
 				n.setSeconds(0);
-				while(i<Object.keys(r).length){
-					d=carersApp.processDate(r[i].date);
+				while(i<Object.keys(l).length){
+					d=App.processDate(l[i].date);
 					if(d.time>n.getTime()){
-						c=(r[i].appointmentStatus)?' '+r[i].appointmentStatus.toLowerCase():'';
-						s=carersApp.template.rosterItem.split('-data-');
+						c=(l[i].itemStatus)?' '+l[i].itemStatus.toLowerCase():'';
+						s=App.template.rosterItem.split('-data-');
 						h.push(
-							s[0]+((l!=d.dd)?'roster_divider':'')+c+
+							s[0]+((p!=d.dd)?'item_divider':'')+c+
 							s[1]+i+
-							s[2]+r[i].geocode+
+							s[2]+l[i].geocode+
 							s[3]+d.dayFormat+
 							s[4]+d.shortDateFormat+
-							s[5]+r[i].startTime+
-							s[6]+r[i].finishTime+
-							s[7]+r[i].clientFirstName+
-							s[8]+r[i].clientLastName+
-							s[9]+r[i].clientStreet+
-							s[10]+r[i].clientSuburb+
-							s[11]+r[i].serviceDescription+
+							s[5]+l[i].startTime+
+							s[6]+l[i].finishTime+
+							s[7]+l[i].clientFirstName+
+							s[8]+l[i].clientLastName+
+							s[9]+l[i].clientStreet+
+							s[10]+l[i].clientSuburb+
+							s[11]+l[i].serviceDescription+
 							s[12]
 						);
 					}
-					i++
-					l=d.dd;
+					i++;
+					p=d.dd;
 				}
-				$('.roster_list').fadeIn().removeClass('roster_list_filtered').html(h.join(''));
-			//Roster items
-				$('.roster_list .roster_item').not('.pending,.submitted').each(function(){
-					$(this).on('click',function(){
-						carersApp.buildAppointmentForm($(this).attr('data-appointment-index'));
+				$('.list_items').fadeIn().removeClass('filtered').html(h.join(''));
+			//Bind events for list items
+				$('.list_items .list_item').not('.pending,.submitted').each(function(){
+					$(this).off().on('click',function(){
+						App.buildForm($(this).attr('data-item-index'));
 					});
-					$(this).find('.roster_map').on('click',function(){
+					$(this).find('.item_map_link').off().on('click',function(){
 						event.stopPropagation();
-						carersApp.data.map.info=$(this).siblings('.roster_client').html();
-						carersApp.showMapPanel($(this).parent().attr('data-appointment-geocode'));
+						App.validateMapData($(this).parent().attr('data-item-geocode'));
 					});
 				});
-				$('.roster_item.pending, .roster_item.submitted').each(function(){
-					$(this).on('click',function(){
-						carersApp.showMessage('error','This appointment has been submitted');
+				$('.list_item.pending, .list_item.submitted').each(function(){
+					$(this).off().on('click',function(){
+						App.showMessage('error',App.message.itemCompleted);
 					});
 				});
-			//Roster search
-				$('#search_form_value').val('');
-				$('.roster_filter_clear').hide();				
+			//Initialise list search
+				$('#search_value').val('');
+				$('.search_clear').hide();	
 				$('.search_form').on('submit',function(){
-					$('#search_form_value').blur();
+					$('#search_value').blur();
 					return false;
 				});
-				$('#search_form_value').off().on('keyup',carersApp.filterRosterList).val('');
-				$('.roster_filter_clear').off().on('click',function(){
-					$('#search_form_value').val('');
-					carersApp.filterRosterList();
+				$('#search_value').off().on('input',App.filterList).val('');
+				$('.search_clear').off().on('click',function(){
+					$('#search_value').val('');
+					App.filterList();
 				});
-			//Roster update
-				$('.roster_update').off().on('click',carersApp.forceRosterLoad);
-				var u=carersApp.processDate(new Date(parseInt(window.localStorage.getItem('ca-roster-time'))));
-				$('.roster_update span').not('.fa').html(u.dateFormat+' '+u.timeFormat);
-				$('.roster_update .fa').removeClass('fa-spin');
-			//Ready
-				if(!$('.roster_page').hasClass('active_page')){
-					if($('.error_page').hasClass('active_overlay'))carersApp.showPage('.roster_page',0);
-					else carersApp.showPage('.roster_page');
+			//Display list update time
+				$('.list_update').off().on('click',App.forceListLoad);
+				App.updateTime();
+				$('.list_update .fa').removeClass('fa-spin');
+				App.data.list.timer=setInterval(App.updateTime,60000);
+			//Bind close button event
+				$('.list_page > .close_button').off().on('click',function(){
+					App.showMessage('confirm',App.message.logOutPrompt,App.logOut);
+				});
+			//Bind list toggle event
+				$('.list_toggle').off().on('click',function(){
+					if($('.list_item.pending,.list_item.submitted')[0]){
+						App.data.list.toggled=!App.data.list.toggled;
+						App.toggleList();
+					}
+				});
+				App.toggleList();
+			//Display list page
+				if(!$('.list_page').hasClass('active_page')){
+					if($('.error_page').hasClass('active_overlay'))App.showPage('.list_page',0);
+					else App.showPage('.list_page');
 				}
-				$('.roster_page > .close_button').off().on('click',function(){
-					carersApp.showMessage('confirm','You will be logged out',carersApp.logOut);
-				});
-				carersApp.processQueue();
+			//Trigger queued form process
+				App.processQueue();
 			}
-			else if(!$('.error_page').hasClass('active_overlay'))carersApp.showMessage('warning','You have no rostered appointments');
+			else if(!$('.error_page').hasClass('active_overlay'))App.showMessage('warning',App.message.noItems);
 		},
-	//Check request result for errors
+		
+	//Display last update time
+		updateTime:function(){
+			$('.update_time').html(App.lastUpdateText(parseInt(window.localStorage.getItem(App.prefix+'-update-time'))));
+		},
+		
+	//Display server error message
 		showServerError:function(request,status,error){
 			var a=
 				("Request = "+request.responseText)+
 				("\nStatus = "+status)+
 				("\nError = "+error);
 			//alert(a);
-			carersApp.showMessage('error','Your roster could not be updated',carersApp.buildRosterList);
+			App.showMessage('error',App.message.updateError,App.buildList);
 		},
+		
 	//Force reload from server
-		forceRosterLoad:function(){
+		forceListLoad:function(){
 			if(window.navigator.onLine==true){
-				$('.roster_list').fadeOut();
-				$('.roster_update .fa').addClass('fa-spin');
-				carersApp.loadRoster(true);
+				$('.list_items').fadeOut();
+				$('.list_update .fa').addClass('fa-spin');
+				App.loadListData(true);
 			}
-			else carersApp.showMessage('error','Your roster cannot be updated while your device is offline');
+			else App.showMessage('error',App.message.offlineUpdate);
 		},
-	//Search(filter) roster list
-		filterRosterList:function(){
-			var s=$('#search_form_value')[0].value.trim().toLowerCase();
+		
+	//Search(filter) list
+		filterList:function(){
+			var s=$('#search_value')[0].value.trim().toLowerCase();
 			if(s.length>1){
-				$('.roster_list').addClass('roster_list_filtered');
-				$('.roster_item').each(function(){
-					if($(this).text().toLowerCase().indexOf(s)<0)$(this).removeClass('roster_item_filtered');
-					else{
-						$(this).addClass('roster_item_filtered');
-						if($(this).prev().hasClass('roster_item_filtered')&&!$(this).hasClass('roster_divider'))$(this).addClass('roster_item_filtered_sibling');
-						else $(this).removeClass('roster_item_filtered_sibling');
+				$('.list_items').addClass('filtered');
+				var c;
+				$('.list_item').each(function(){
+					if($(this).hasClass('item_divider'))c=1;
+					if($(this).text().toLowerCase().indexOf(s)>-1){
+						$(this).addClass('filtered');
+						if(c==1){
+							$(this).addClass('filtered_divider');
+							c=0;
+						}
 					}
+					else $(this).removeClass('filtered filtered_divider no_border');
 				});
-				$('.roster_item.roster_item_filtered').first().addClass('first_item');
-				$('.roster_filter_clear').show();
+				$('.search_clear').show();
 			}
 			else{
-				$('.roster_list').removeClass('roster_list_filtered');
-				$('.roster_item_filtered').removeClass('roster_item_filtered roster_item_filtered_sibling first_item');
-				$('.roster_filter_clear').hide();
+				$('.list_items').removeClass('filtered');
+				$('.list_item').removeClass('filtered filtered_divider no_border');
+				$('.search_clear').hide();
 			}
+			$('.list_item:visible').first().addClass('no_border');
+		},
+		
+	//Validate map data
+		validateMapData:function(destination){
+			if(window.navigator.onLine==false||typeof window.navigator.geolocation!=='object'){
+				App.showMessage('error',App.message.noGeolocation);
+				return;
+			}
+			var s=destination.split(',');
+			if(isNaN(s[0])||isNaN(s[1])){
+				App.showMessage('error',App.message.noMapAvailable);
+				return;
+			}
+			else{
+				App.data.map.destination=destination;
+				App.showMapPanel();
+			}
+		},
+		
+	//Show and hide map overlay
+		showMapPanel:function(){
+			$('#map_inner').empty();
+			$('.map_icon').addClass('loading');
+			$('.active_overlay').removeClass('active_overlay').hide();
+			$('.map_page').addClass('active_overlay').fadeIn();
+			$('body').addClass('no_scroll');
+			$('.map_page .close_button').off().on('click',App.hideMapPanel);
+			if(typeof google==='undefined'||typeof google.maps==='undefined'){
+				$('body').append('<script type="text/javascript" src="'+$('#google_script').attr('data-src')+'"></script>');
+				App.verifyMapScript();
+			}
+			else App.getGeocode(App.initialiseMap);
+		},
+		hideMapPanel:function(){
+			$('.map_page').removeClass('active_overlay').fadeOut(function(){
+				$('body').removeClass('no_scroll');
+				$('.map_icon').removeClass('loading');
+				$('.map_text_link,.map_directions').hide().removeClass('active');
+			});
+		},
+		
+	//Reload Google scripts if unavailable
+		verifyMapScript:function(){
+			if(typeof google==='object'&&typeof google.maps==='object'){
+				App.getGeocode(App.initialiseMap);
+			}
+			else window.setTimeout(App.verifyMapScript,500);
+		},
+		
+	//Initialise map for directions
+		initialiseMap:function(){
+			if(!new RegExp('error','gi').test(App.data.map.origin)){
+				a=App.data.map.origin.split(',');
+				b=App.data.map.destination.split(',');
+				var o=new google.maps.LatLng(parseFloat(a[0]),parseFloat(a[1])),
+					d=new google.maps.LatLng(parseFloat(b[0]),parseFloat(b[1])),
+					r={
+						origin:o,
+						destination:d,
+						travelMode:'DRIVING'
+					},
+					s=new google.maps.DirectionsService();
+				s.route(r,function(response,status){
+					if(status=='OK'){
+						$('.map_icon').removeClass('loading');
+						$('.map_text_link').show().addClass('active');
+						var m=new google.maps.Map($('#map_inner')[0],{
+								disableDefaultUI:true,
+								zoomControl:true,
+								streetViewControl:true
+							}),
+							g=new google.maps.DirectionsRenderer();
+						g.setDirections(response);
+						g.setMap(m);
+						App.getTextDirections(response.routes[0].legs[0]);
+					}
+					else if($('.map_page.active_overlay')[0])App.showMessage('error',App.message.googleError,App.hideMapPanel);
+				});
+			}
+			else if($('.map_page').hasClass('active_overlay'))App.showMessage('error',App.message.noGeolocation,App.hideMapPanel);
+		},
+		
+	//Get text directions from map result
+		getTextDirections:function(directions){
+			var h=[],a=App.template.directionStep.split('-data-');
+			h.push(
+				a[0]+directions.distance.text+' ('+directions.duration.text+')'+
+				a[1]+
+				a[2]
+			);
+			for(s in directions.steps){
+				h.push(
+					a[0]+directions.steps[s].instructions+
+					a[1]+directions.steps[s].distance.text+
+					a[2]
+				)
+			}
+			$('.directions_list').html(h.join(''));
+			$('.map_text_link').off().on('click',function(){
+				$(this).toggleClass('active');
+				if($(this).hasClass('active'))$('.map_directions').fadeOut();
+				else $('.map_directions').fadeIn().scrollTop(0);
+			});
+		},
+		
+	//Get geocode from device
+		getGeocode:function(process){
+			if(typeof window.navigator.geolocation==='object'){
+				window.navigator.geolocation.getCurrentPosition(
+					function(position){
+						App.data.map.origin=position.coords.latitude+','+position.coords.longitude;
+						if(typeof process=='function')(process)();
+					},
+					function(error){
+						App.data.map.origin='Error: '+error.message;
+						if(typeof process=='function')(process)();
+					},
+					{
+						timeout:20000
+					}
+				);
+			}
+			else App.showMessage('error',App.message.locationError);
+		},
+		
+	//Add geocode value to form
+		setGeocodeFormValue:function(){
+			$('#form_geocode_value').val(App.data.map.origin);
+			$('.location_check').hide();
+			if(App.data.map.origin.indexOf('Error')==0)$('.location_error').show();
+			else $('.location_captured').show();
+		},
+		
+	//Toggle submitted list items
+		toggleList:function(){
+			if(App.data.list.toggled==true){
+				$('.list_page').addClass('list_toggled');
+				var c;
+				$('.list_item').each(function(){
+					if($(this).hasClass('item_divider'))c=1;
+					if(!$(this).hasClass('submitted')&&!$(this).hasClass('pending')&&c==1){
+						$(this).addClass('toggled_divider');
+						c=0;
+					}
+					else $(this).removeClass('toggled_divider no_border');
+				});
+			}
+			else{
+				$('.list_page').removeClass('list_toggled');
+				$('.list_item').removeClass('toggled_divider no_border');
+			}
+			if($('.list_item.pending,.list_item.submitted')[0])$('.list_toggle').removeClass('inactive');
+			else $('.list_toggle').addClass('inactive');
+			$('.list_item:visible').first().addClass('no_border');
 		},
 	
 	
 	
-	//APPOINTMENT FORM
+	//FORM PAGE
 	
-	//Show appointment form (Appointment step 1)
-	buildAppointmentForm:function(id){
-		//Form data
-			var a=JSON.parse(window.localStorage.getItem('ca-roster'))[id],
-			s=carersApp.template.appointmentForm.split('-data-'),
-			d=carersApp.processDate(a.date);
+	//Generate item form
+		buildForm:function(id){
+			var f=JSON.parse(window.localStorage.getItem(App.prefix+'-data'))[id],
+			s=App.template.itemForm.split('-data-'),
+			d=App.processDate(f.date);
 			h=[];
 			h.push(
-				s[0]+a.clientFirstName+
-				s[1]+a.clientLastName+
+				s[0]+f.clientFirstName+
+				s[1]+f.clientLastName+
 				s[2]+d.dateFormat+
-				s[3]+a.startTime+
-				s[4]+a.finishTime+
-				s[5]+a.serviceDescription+
+				s[3]+f.startTime+
+				s[4]+f.finishTime+
+				s[5]+f.serviceDescription+
 				s[6]
 			);
-			$('.appointment_form').html(h.join(''));
-		//Start time
-			/*Option: populate start time from roster data
-				var asv=carersApp.processDate(a.date);
-					asv.setHours(parseInt(a.startTime));
-					asv.setMinutes(a.startTime.substring(a.startTime.indexOf(':')+1));
+			$('.item_form').html(h.join(''));
+		//Bind events for clock overlay
+			/*Option: populate start and finish time from loaded data
+				var asv=App.processDate(f.date);
+					asv.setHours(parseInt(f.startTime));
+					asv.setMinutes(f.startTime.substring(f.startTime.indexOf(':')+1));
 					asv.setSeconds(0);
-				$('#appointment_start_value').val(asv.getTime());*/
-			$('.appointment_page .appointment_start').on('click',function(){
-				carersApp.data.clock.active=$(this);
-				carersApp.showAppointmentClock($('#appointment_start_value').val());
-			});
-		//Finish time
-			/*Option: populate finish time from roster data
-				var afv=carersApp.processDate(a.date);
-					afv.setHours(parseInt(a.finishTime));
-					afv.setMinutes(a.finishTime.substring(a.finishTime.indexOf(':')+1));
+				$('#form_start_value').val(asv.getTime());
+				var afv=App.processDate(f.date);
+					afv.setHours(parseInt(f.finishTime));
+					afv.setMinutes(f.finishTime.substring(f.finishTime.indexOf(':')+1));
 					afv.setSeconds(0);
-				$('#appointment_finish_value').val(afv.getTime());*/
-			$('.appointment_page .appointment_finish').on('click',function(){
-				carersApp.data.clock.active=$(this);
-				carersApp.showAppointmentClock($('#appointment_finish_value').val());
+				$('#form_finish_value').val(afv.getTime());*/
+			$('.form_page .form_start').off().on('click',function(){
+				App.data.clock.active=$(this);
+				App.initialiseClockOverlay($('#form_start_value').val());
 			});
-			$('.appointment_page .appointment_travel').on('click',function(){
-				carersApp.showTravelPanel();
+			$('.form_page .form_finish').off().on('click',function(){
+				App.data.clock.active=$(this);
+				App.initialiseClockOverlay($('#form_finish_value').val());
 			});
-		//Clock panel
-			$('.clock_split_24').on('click',function(){
-				carersApp.setClockSplit(24,$(this));
+			$('.clock_split_24').off().on('click',function(){
+				App.setClockSplit(24,$(this));
 			});
-			$('.clock_split_12').on('click',function(){
-				carersApp.setClockSplit(12,$(this));
+			$('.clock_split_12').off().on('click',function(){
+				App.setClockSplit(12,$(this));
 			});
-			$('.clock_split_icon').on('click',function(){
-				if($('.clock_split_12.split_active')[0])carersApp.setClockSplit(24,$('.clock_split_24'));
-				else carersApp.setClockSplit(12,$('.clock_split_12'));
+			$('.clock_split_icon').off().on('click',function(){
+				if($('.clock_split_12.split_active')[0])App.setClockSplit(24,$('.clock_split_24'));
+				else App.setClockSplit(12,$('.clock_split_12'));
 			});
 			$('.clock_number').each(function(){
-				$(this).on('click',function(){
+				$(this).off().on('click',function(){
 					$(this).addClass('number_active').siblings().removeClass('number_active');
-					carersApp.setClockTime($(this));
+					App.setClockTime($(this));
 				});
 			});
-		//Travel panel
+		//Bind events for travel panel
+			$('.form_page .form_travel').off().on('click',function(){
+				App.initialiseTravelOverlay();
+			});
 			$('.slider_handle').draggable({
 				containment:'parent',
 				axis:'y',
 				start:function(){
 					$('.slider_handle').addClass('active');
 				},
-				drag:carersApp.setSliderValue,
+				drag:App.setSliderValue,
 				stop:function(){
 					if($('.display_km').html()=='0')$(this).removeClass('active');
 				}
 			});
-			$('.slider_track').on('click',carersApp.jumpSlider);
-		//Note panel
-			$('.appointment_notes textarea').on('focus',function(){
+			$('.slider_track').off().on('click',App.jumpSlider);
+		//Bind events for note panel
+			$('.form_notes textarea').on('focus',function(){
 				$(this).parent().addClass('active');
 			});
-			$('.appointment_notes textarea').on('blur',function(){
+			$('.form_notes textarea').on('blur',function(){
 				$(this).parent().removeClass('active');
 			});
-			$('.note_add').on('click',function(){
-				carersApp.showNotePanel();
+			$('.note_add').off().on('click',function(){
+				App.initialiseNoteOverlay();
 			});
-		//Signature panel
-			$('.appointment_sign').on('click',carersApp.showSignaturePanel);
-		//Photo panel
-			$('.appointment_photo').on('click',carersApp.openCamera);
-		//Geocode field
-			carersApp.getGeocode(carersApp.setGeocodeFormValue);
-		//Ready
-			$('#appointment_index_value').val(id);
-			$('.appointment_form').on('submit',function(){
+		//Bind events for signature panel
+			$('.form_sign').off().on('click',function(){
+				App.showSignaturePanel();
+			});
+			$('.signature_clear').off().on('click',function(){
+				App.clearSignaturePanel();
+			});
+		//Bind camera events
+			$('.form_photo').on('click',App.openCamera);
+			$('.photo_clear').off().on('click',function(){
+				App.clearPhotoPanel();
+			});
+		//Populate static form data
+			App.getGeocode(App.setGeocodeFormValue);
+			$('#form_index_value').val(id);
+		//Bind form + submit events
+			$('.item_form').on('submit',function(){
 				return false;
 			});
-			$('#appointment_submit').off().on('click',carersApp.submitAppointment);
-			$('#appointment_cancel').off().on('click',carersApp.cancelAppointment);
-			$('.appointment_page > .close_button').off().on('click',carersApp.cancelAppointment);			
-			carersApp.showPage('.appointment_page');
-	},
+			$('#form_submit').off().on('click',App.submitForm);
+			$('.form_page > .close_button').off().on('click',App.cancelForm);
+		//Display form page
+			App.showPage('.form_page');
+		},
 	
-	//Show clock panel for appointment form
-	showAppointmentClock:function(timestamp){
-		$('.split_active').removeClass('split_active');
-		$('.number_active').removeClass('number_active');	
-		if(!timestamp){
-			var t=new Date();
-				t.setMinutes(Math.round(t.getMinutes()/5)*5);
-			timestamp=t.getTime();
-		}
-		var d=new Date(parseInt(timestamp));
-			d.setMinutes(Math.round(d.getMinutes()/5)*5);
-		carersApp.data.clock.time=parseInt(timestamp);
-		if(d.getHours()==0){
-			$('.clock_hours .clock_0').addClass('number_active');
-			carersApp.setClockSplit(24);
-		}
-		else if(d.getHours()<12){
-			$('.clock_hours .clock_'+(d.getHours())).addClass('number_active');
-			carersApp.setClockSplit(12);
-		}
-		else if(d.getHours()==12){
-			$('.clock_hours .clock_0').addClass('number_active');
-			carersApp.setClockSplit(12);
-		}
-		else if(d.getHours()>12){
-			$('.clock_hours .clock_'+(d.getHours()-12)).addClass('number_active');
-			carersApp.setClockSplit(24);
-		}
-		$('.clock_mins .clock_'+(d.getMinutes()/5)).addClass('number_active');
-		carersApp.setClockTime();		
-		$('.appointment_overlay .overlay_panel').hide();
-		$('.appointment_overlay .clock_panel').show();
-		$('.appointment_overlay .close_button').off().on('click',function(){
-			if(carersApp.validateAppointmentTimes()==true){
-				carersApp.hideAppointmentOverlay(function(){
-					$(carersApp.data.clock.active).find('label > span').html($('.clock_hours .number_active .split_active').text()+':'+$('.clock_mins .number_active').text());
-					$(carersApp.data.clock.active).addClass('completed');
-				});
+	//Initialise clock overlay
+		initialiseClockOverlay:function(timestamp){
+			$('.active_overlay').removeClass('active_overlay').hide();
+			$('.clock_page .close_button').off().on('click',function(){
+				if(App.validateClockTime()==true){
+					App.hideFormOverlay(function(){
+						$(App.data.clock.active).find('label > span').html($('.clock_hours .number_active .split_active').text()+':'+$('.clock_mins .number_active').text());
+						$(App.data.clock.active).addClass('completed');
+					});
+				}
+				else App.showMessage('error',App.message.clockValidation);
+			});
+			$('.split_active').removeClass('split_active');
+			$('.number_active').removeClass('number_active');	
+			if(!timestamp){
+				var t=new Date();
+					t.setMinutes(Math.round(t.getMinutes()/5)*5);
+				timestamp=t.getTime();
 			}
-			else carersApp.showMessage('error','The appointment finish time must be later than the start time');
-		});
-		carersApp.showAppointmentOverlay();
-	},
-	//Validate start and finish times for clock panel
-		validateAppointmentTimes:function(){
-			if(!$('#appointment_start_value').val()||!$('#appointment_finish_value').val())return true;
-			if(new Date(parseInt($('#appointment_finish_value').val()))>new Date(parseInt($('#appointment_start_value').val())))return true;
+			var d=new Date(parseInt(timestamp));
+				d.setMinutes(Math.round(d.getMinutes()/5)*5);
+			App.data.clock.time=parseInt(timestamp);
+			if(d.getHours()==0){
+				$('.clock_hours .clock_0').addClass('number_active');
+				App.setClockSplit(24);
+			}
+			else if(d.getHours()<12){
+				$('.clock_hours .clock_'+(d.getHours())).addClass('number_active');
+				App.setClockSplit(12);
+			}
+			else if(d.getHours()==12){
+				$('.clock_hours .clock_0').addClass('number_active');
+				App.setClockSplit(12);
+			}
+			else if(d.getHours()>12){
+				$('.clock_hours .clock_'+(d.getHours()-12)).addClass('number_active');
+				App.setClockSplit(24);
+			}
+			$('.clock_mins .clock_'+(d.getMinutes()/5)).addClass('number_active');
+			App.setClockTime();
+			$('.clock_page').addClass('active_overlay').fadeIn();
+		},
+	
+	//Validate start and finish times for clock overlay
+		validateClockTime:function(){
+			if(!$('#form_start_value').val()||!$('#form_finish_value').val())return true;
+			if(new Date(parseInt($('#form_finish_value').val()))>new Date(parseInt($('#form_start_value').val())))return true;
 			else return false;
 		},
-	//Toggle AM and PM for clock panel
+		
+	//Toggle AM and PM for clock overlay
 		setClockSplit:function(split,element){
 			if(split==12){
 				$('.clock_split_12').addClass('split_active');
@@ -489,358 +734,299 @@ var carersApp={
 				$('.display_split_12').removeClass('split_active').hide();
 				$('.display_split_24').addClass('split_active').fadeIn();
 			}
-			if(element)carersApp.setClockTime();
+			if(element)App.setClockTime();
 		},
-	//Set selected time for clock panel
+		
+	//Set selected time for clock overlay
 		setClockTime:function(){
-			var d=new Date(carersApp.data.clock.time);
+			var d=new Date(App.data.clock.time);
 				d.setHours(parseInt($('.clock_hours .number_active .split_active').text()));
 				d.setMinutes(parseInt($('.clock_mins .number_active').text()));
 			$('.clock_hand_hours').css('transform','rotate('+(($('.clock_hours .number_active').index()*30)-90)+'deg)');
 			$('.clock_hand_mins').css('transform','rotate('+(($('.clock_mins .number_active').index()*30)-90)+'deg)');
-			carersApp.data.clock.time=d.getTime();
-			$(carersApp.data.clock.active).find('input').val(d.getTime());
-			carersApp.setDisplayTime();
+			App.data.clock.time=d.getTime();
+			$(App.data.clock.active).find('input').val(d.getTime());
+			App.setDisplayTime();
 		},
-	//Set text display for clock panel
+		
+	//Set text display for clock overlay
 		setDisplayTime:function(){
 			$('.display_hours').html($('.clock_hours .number_active .split_active').text());
 			$('.display_mins').html($('.clock_mins .number_active').text());
 		},
 	
-	//Show travel panel for appointment form
-	showTravelPanel:function(){
-		$('.appointment_overlay .overlay_panel').hide();
-		$('.appointment_overlay .travel_panel').show();
-		if($('#appointment_travel_value').val()==0)carersApp.resetSlider();
-		$('.appointment_overlay .close_button').off().on('click',function(){
-			carersApp.hideAppointmentOverlay(function(){
-				$('.appointment_travel label > span').html($('.display_km').text());
-				$('#appointment_travel_value').val($('.display_km').text());
-				if(parseInt($('#appointment_travel_value').val())!=0)$('.appointment_travel').addClass('completed');
+	//Initialise travel overlay
+		initialiseTravelOverlay:function(){
+			$('.active_overlay').removeClass('active_overlay').hide();
+			if($('#form_travel_value').val()==0)App.resetSlider();
+			$('.travel_page .close_button').off().on('click',function(){
+				App.hideFormOverlay(function(){
+					$('.form_travel label > span').html($('.display_km').text());
+					$('#form_travel_value').val($('.display_km').text());
+					if(parseInt($('#form_travel_value').val())!=0)$('.form_travel').addClass('completed');
+				});
 			});
-		});
-		carersApp.showAppointmentOverlay();
-	},
-	//Reset slider for new appointment
+			$('.travel_page').addClass('active_overlay').fadeIn();
+		},
+		
+	//Reset slider for new form
 		resetSlider:function(){
-			$('.appointment_overlay .slider_handle').removeClass('active').css({'bottom':'0','top':'auto'});
+			$('.slider_handle').removeClass('active').css({'bottom':'0','top':'auto'});
 			$('.display_km').html('0');
 		},
-	//Display slider value for travel panel
+		
+	//Display slider value for travel overlay
 		setSliderValue:function(){
 			$('.display_km').html(Math.round(($('.slider_handle').position().top/($('.form_slider').height()-$('.slider_handle').height()))*-100)+100);
 		},
-	//Jump slider to mouse click for travel panel
+		
+	//Jump slider to mouse click for travel overlay
 		jumpSlider:function(reset){
 			var t=Math.max(0,Math.min((event.pageY-$(this).offset().top)-$('.slider_handle').height()/2,$('.slider_track').height()-$('.slider_handle').height()));
 			$('.slider_handle').css('top',t);
 			if(t<$('.slider_track').height()-$('.slider_handle').height())$('.slider_handle').addClass('active');
 			else $('.slider_handle').removeClass('active');
-			carersApp.setSliderValue();
+			App.setSliderValue();
 		},
 	
-	//Show note panel for appointment form
-	showNotePanel:function(){
-		var i=0,h=[],
-			s=carersApp.template.noteItem.split('-data-');
-		while(i<carersApp.data.notes.length){
-			h.push(
-				s[0]+carersApp.data.notes[i]+
-				s[1]
-			);
-			i++;
-		}
-		$('.note_list').html(h.join(''));
-		$('.note_list li').each(function(){
-			if($('#appointment_notes_value').val().indexOf($(this).find('.note_text').text())>-1)$(this).addClass('active');
-			$(this).on('click',function(){
-				$(this).toggleClass('active');
+	//Initialise note panel
+		initialiseNoteOverlay:function(){
+			$('.active_overlay').removeClass('active_overlay').hide();
+			$('.note_page .close_button').off().on('click',function(){
+				App.hideFormOverlay(function(){
+					App.addNoteText();
+					$('#form_notes_value').blur();
+				});
 			});
-		});
-		$('.appointment_overlay .overlay_panel').hide();
-		$('.appointment_overlay .note_panel').show();
-		$('.appointment_overlay .close_button').off().on('click',function(){
-			carersApp.hideAppointmentOverlay(function(){
-				carersApp.addNoteText();
-				$('#appointment_notes_value').blur();
+			var i=0,h=[],
+				s=App.template.noteItem.split('-data-');
+			while(i<App.data.notes.length){
+				h.push(
+					s[0]+App.data.notes[i]+
+					s[1]
+				);
+				i++;
+			}
+			$('.note_list').html(h.join(''));
+			$('.note_list li').each(function(){
+				if($('#form_notes_value').val().indexOf($(this).find('.note_text').text())>-1)$(this).addClass('active');
+				$(this).off().on('click',function(){
+					$(this).toggleClass('active');
+				});
 			});
-		});
-		carersApp.showAppointmentOverlay();
-	},
+			$('.note_page').addClass('active_overlay').fadeIn();
+		},
+		
 	//Process selected note text
 		addNoteText:function(){
-			var t=$('#appointment_notes_value').val();
+			var t=$('#form_notes_value').val();
 			$('.note_text').each(function(){
 				if($(this).parent().hasClass('active')&&t.indexOf($(this).text())<0)t+=(' '+$(this).text()+' ');
 				if(!$(this).parent().hasClass('active')&&t.indexOf($(this).text())>-1)t=t.replace($(this).text(),'');
 			});
-			$('#appointment_notes_value').val(t.replace(/\s{2,}/gi,' ').trim());
+			$('#form_notes_value').val(t.replace(/\s{2,}/gi,' ').trim());
 		},
 	
-	//Show signature panel for appointment form - https://github.com/szimek/signature_pad
-	showSignaturePanel:function(){
-		$('.signature_button').off().on('click',function(){
-			carersApp.data.signature.canvas.clear();
-		});
-		$('.appointment_overlay .overlay_panel').hide();
-		$('.appointment_overlay .signature_panel').show();
-		$('.appointment_overlay .close_button').off().on('click',function(){
-			carersApp.hideAppointmentOverlay(function(){
-				if(!carersApp.data.signature.canvas.isEmpty()){
-					$('#appointment_sign_value').val(carersApp.data.signature.canvas.toDataURL());
-					carersApp.data.signature.canvas.clear();
-					$('.appointment_sign').addClass('completed');
-				}
-				else{
-					$('#appointment_sign_value').val('');
-					$('.appointment_sign').removeClass('completed');
-				}
+	//Show signature overlay - https://github.com/szimek/signature_pad
+		showSignaturePanel:function(){
+			$('.active_overlay').removeClass('active_overlay').hide();
+			$('.signature_page .close_button').off().on('click',function(){
+				$('.signature_page').fadeOut(function(){
+					if(!App.data.signature.canvas.isEmpty()){
+						$('#form_sign_value').val(App.data.signature.canvas.toDataURL());
+						App.data.signature.canvas.clear();
+						$('#form_sign_value').parent().addClass('completed');
+					}
+					else{
+						$('#form_sign_value').val('');
+						$('#form_sign_value').parent().removeClass('completed');
+					}
+				});
 			});
-		});
-		carersApp.showAppointmentOverlay(carersApp.initialiseSignaturePanel);
-	},
-	//Resize signature canvas element
-		initialiseSignaturePanel:function(){
-			carersApp.data.signature.canvas=document.querySelector('canvas#signature_image');
-			$(carersApp.data.signature.canvas).width($(document).width());
-			$(carersApp.data.signature.canvas).height($(document).height());
-			carersApp.data.signature.canvas.width=$(document).width();
-			carersApp.data.signature.canvas.height=$(document).height();
-			carersApp.data.signature.canvas=new SignaturePad(carersApp.data.signature.canvas);
+			App.initialiseSignaturePanel();
+			$('.signature_page').addClass('active_overlay').fadeIn();
 		},
 		
-	//Open camera for appointment form
-	openCamera:function(){
-		if(window.navigator.camera){
-			window.navigator.camera.getPicture(
-				function(filename){
-					$('#appointment_photo_value').val(filename);
-					$('.appointment_photo').addClass('completed');
-					carersApp.showCameraPanel();
-				},
-				function(error){
-					carersApp.showMessage('error',error);
-					$('.appointment_photo').removeClass('completed');
-				},
-				{
-					quality:50,
-					destinationType:Camera.DestinationType.FILE_URI,
-					correctOrientation:true,
-					saveToPhotoAlbum:false
-				}
-			);
-		}
-		//else carersApp.showMessage('error','No camera is available');
-		else carersApp.showCameraPanel();
-	},
-	//Show camera panel for photo annotation
-		showCameraPanel:function(){
-			$('.appointment_overlay .overlay_panel').hide();
-			$('.appointment_overlay .photo_panel').show();
-			$('.appointment_overlay .photo_layout').css('background-image','url(\''+$('#appointment_photo_value').val()+'\')');
-			$('.appointment_overlay .close_button').off().on('click',function(){
-				carersApp.hideAppointmentOverlay(function(){
-					if(!carersApp.data.photo.canvas.isEmpty()){
-						$('#appointment_annotation_value').val(carersApp.data.photo.canvas.toDataURL());
-						carersApp.data.photo.canvas.clear();
+	//Resize signature canvas element
+		initialiseSignaturePanel:function(){
+			App.data.signature.canvas=document.querySelector('canvas#signature_image');
+			var r=Math.max(window.devicePixelRatio||1,1);
+			$(App.data.signature.canvas).width($(document).width())*r;
+			$(App.data.signature.canvas).height($(document).height())*r;
+			App.data.signature.canvas.width=$(document).width()*r;
+			App.data.signature.canvas.height=$(document).height()*r;
+			App.data.signature.canvas.getContext("2d").scale(r,r);
+			App.data.signature.canvas=new SignaturePad(App.data.signature.canvas);
+			if($('#form_sign_value').val()!='')App.data.signature.canvas.fromDataURL($('#form_sign_value').val());
+		},
+		
+	//Clear signature panel
+		clearSignaturePanel:function(){
+			App.data.signature.canvas.clear();
+		},
+		
+	//Open camera for form
+		openCamera:function(){
+			if(window.navigator.camera&&$('#form_photo_value').val()=='No photo captured'){
+				window.navigator.camera.getPicture(
+					function(filename){
+						App.showCameraPanel(filename);
+					},
+					function(error){
+						App.showMessage('error',error);
+						$('#form_photo_button').parent().removeClass('completed');
+					},
+					{
+						quality:50,
+						destinationType:Camera.DestinationType.FILE_URI,
+						correctOrientation:true,
+						saveToPhotoAlbum:false
 					}
-					else $('#appointment_annotation_value').val('');
+				);
+			}
+			else if(window.navigator.camera&&$('#form_photo_value').val()!='No photo captured'){
+				App.showCameraPanel($('#form_photo_value').val());
+			}
+			else App.showMessage('error',App.message.noCamera);
+			//else App.showCameraPanel();
+		},
+		
+	//Show camera panel for photo annotation
+		showCameraPanel:function(filename){
+			if(filename){
+				$('#form_photo_value').val(filename);
+				$('#form_photo_value').parent().addClass('completed');
+			}
+			if(!$('.photo_page').hasClass('active_overlay'))$('.active_overlay').removeClass('active_overlay').hide();
+			if($('#form_photo_value').val()!='No photo captured')$('.photo_layout').css('background-image','url(\''+$('#form_photo_value').val()+'\')');
+			$('.photo_page .close_button').off().on('click',function(){
+				$('.photo_page').fadeOut(function(){
+					if(!App.data.photo.canvas.isEmpty()){
+						$('#form_annotation_value').val(App.data.photo.canvas.toDataURL());
+						App.data.photo.canvas.clear();
+					}
+					else $('#form_annotation_value').val('No annotation entered');
 				});
 			});
-		carersApp.showAppointmentOverlay(carersApp.initialisePhotoPanel);
-	},
+			App.initialisePhotoPanel();
+			$('.photo_page').addClass('active_overlay').fadeIn();
+		},
+		
 	//Resize photo canvas element
 		initialisePhotoPanel:function(){
-			carersApp.data.photo.canvas=document.querySelector('canvas#photo_image');
-			$(carersApp.data.photo.canvas).width($(document).width());
-			$(carersApp.data.photo.canvas).height($(document).height());
-			carersApp.data.photo.canvas.width=$(document).width();
-			carersApp.data.photo.canvas.height=$(document).height();
-			carersApp.data.photo.canvas=new SignaturePad(carersApp.data.photo.canvas);
-			carersApp.data.photo.canvas.penColor='yellow';
+			App.data.photo.canvas=document.querySelector('canvas#photo_image');
+			var r=Math.max(window.devicePixelRatio||1,1);
+			$(App.data.photo.canvas).width($(document).width())*r;
+			$(App.data.photo.canvas).height($(document).height())*r;
+			App.data.photo.canvas.width=$(document).width()*r;
+			App.data.photo.canvas.height=$(document).height()*r;
+			App.data.photo.canvas.getContext("2d").scale(r,r);
+			App.data.photo.canvas=new SignaturePad(App.data.photo.canvas);
+			App.data.photo.canvas.penColor='yellow';
+			if($('#form_annotation_value').val()!='No annotation entered')App.data.photo.canvas.fromDataURL($('#form_annotation_value').val());
+		},
+		
+	//Clear photo panel
+		clearPhotoPanel:function(){
+			App.data.photo.canvas.clear();
+			$('#form_annotation_value').val('');
+			$('#form_photo_value').val('No photo captured');
+			$('.photo_layout').css('background-image','none')
+			$('#form_photo_value').parent().removeClass('completed');
+			App.openCamera();
 		},
 	
-	//Show and hide map overlay
-	showMapPanel:function(destination){
-		if(window.navigator.onLine==true&&
-			typeof window.navigator.geolocation==='object'&&
-			typeof google==='object'&&
-			typeof google.maps==='object'){
-				$('#map_inner').empty();
-				$('.map_icon').addClass('loading');
-				$('.active_overlay').removeClass('active_overlay').hide();
-				$('.map_page').addClass('active_overlay').fadeIn();
-				$('.map_page .close_button').off().on('click',carersApp.hideMapPanel);
-				if(parseInt(destination)+''!='NaN'){
-					carersApp.data.map.destination=destination;
-					carersApp.getGeocode(carersApp.initialiseMap);
-				}
-				else carersApp.showMessage('error','Maps are not available for this appointment',carersApp.hideMapPanel);
-		}
-		else{
-			carersApp.showMessage('error','Maps cannot be used when your device is offline or location is turned off');
-		}
-	},
-		hideMapPanel:function(){
-			$('.map_page').removeClass('active_overlay').fadeOut(function(){
-				$('.map_icon').removeClass('loading');
-			});
-		},
-	//Initialise map for directions
-		initialiseMap:function(){
-			if(!new RegExp('error','gi').test(carersApp.data.map.origin)){
-				a=carersApp.data.map.origin.split(',');
-				b=carersApp.data.map.destination.split(',');
-				var o=new google.maps.LatLng(parseFloat(a[0]),parseFloat(a[1])),
-					d=new google.maps.LatLng(parseFloat(b[0]),parseFloat(b[1])),
-					r={
-						origin:o,
-						destination:d,
-						travelMode:'DRIVING'
-					},
-					s=new google.maps.DirectionsService();
-				s.route(r,function(response,status){
-					if(status=='OK'){
-						$('.map_icon').removeClass('loading');
-						var m=new google.maps.Map($('#map_inner')[0],{
-								disableDefaultUI:true,
-								zoomControl:true,
-								streetViewControl:true
-							}),
-							g=new google.maps.DirectionsRenderer();
-						g.setDirections(response);
-						g.setMap(m);
-					}
-					else if($('.map_page.active_overlay')[0])carersApp.showMessage('error','An error has occurred at Google Maps',carersApp.hideMapPanel);
+	//Submit form data
+		submitForm:function(){
+			if(App.validateForm()==true){
+				$('#form_timestamp_value').val(new Date().getTime());
+				var f={};
+				$('.item_form input, .item_form textarea').not('input[type=submit], input[type=reset]').each(function(){
+					f[$(this).attr('id')]=$(this).val();
 				});
+				App.addQueueItem(f);
 			}
-			else if($('.map_page.active_overlay')[0])carersApp.showMessage('error','Maps cannot be used when your device is offline or location is turned off',carersApp.hideMapPanel);
+			else App.showMessage('error',App.message.incompleteForm);
+			return false;
 		},
-	
-	//Get geocode from device or Google API
-	getGeocode:function(process){
-		if(typeof window.navigator.geolocation==='object'){
-			window.navigator.geolocation.getCurrentPosition(
-				function(position){
-					carersApp.data.map.origin=position.coords.latitude+','+position.coords.longitude;
-					if(typeof process=='function')(process)();
-				},
-				function(error){
-					carersApp.data.map.origin='Error: '+error.message;
-					if(typeof process=='function')(process)();
-				},
-				{
-					timeout:20000
-				}
-			);
-		}
-		else carersApp.showMessage('error','Your location cannot be determined');
-	},
-	//Add geocode value to appointment form
-		setGeocodeFormValue:function(){
-			$('#appointment_geocode_value').val(carersApp.data.map.origin);
-			$('.location_check').hide();
-			if(carersApp.data.map.origin.indexOf('Error')==0)$('.location_error').show();
-			else $('.location_captured').show();
-		},
-	
-	//Show and hide appointment overlay
-	showAppointmentOverlay:function(process){
-			$('body').addClass('no_scroll');
-			$('.appointment_overlay').addClass('active_overlay').fadeIn(function(){
-				if(typeof process=='function')(process)();
-			});
-		},
-		hideAppointmentOverlay:function(process){
-			if(typeof process=='function')(process)();
-			$('body').removeClass('no_scroll');
-			$('.appointment_overlay').removeClass('active_overlay').fadeOut();
-		},
-	
-	//Submit appointment data
-	submitAppointment:function(){
-		if(carersApp.validateAppointment()==true){
-			$('#appointment_timestamp_value').val(new Date().getTime());
-			var f={};
-			$('.appointment_form input, .appointment_form textarea').not('input[type=submit], input[type=reset]').each(function(){
-				f[$(this).attr('id')]=$(this).val();
-			});
-			carersApp.addQueueItem(f);
-		}
-		else carersApp.showMessage('error','Please complete this form before saving');
-		return false;
-	},
-	//Validate appointment data before submission
-		validateAppointment:function(){
+		
+	//Validate item form data before submission
+		validateForm:function(){
 			var i=0;
-			$('.appointment_form .hidden_field[data-required=true]').each(function(){
+			$('.item_form .hidden_field[data-required=true]').each(function(){
 				if($(this).val()=='')return false;
 				i++;
 			});
-			if(i==$('.appointment_form .hidden_field[data-required=true]').length)return true;
+			if(i==$('.item_form .hidden_field[data-required=true]').length)return true;
 			return false;
 		},
-	//Cancel appointment submission
-		cancelAppointment:function(){
-			carersApp.showMessage('confirm','Information in this form will be discarded',carersApp.loadRoster);
+		
+	//Close item form screen (cancel form)
+		cancelForm:function(){
+			App.showMessage('confirm',App.message.cancelForm,function(){
+				App.loadListData();
+			});
 		},
-	//Add submission to processing queue and return to roster page
+		
+	//Add submission to processing queue and return to list page
 		addQueueItem:function(item){
 			var q;
-			if(window.localStorage.getItem('ca-queue')!=null){
-				q=window.localStorage.getItem('ca-queue').split(']')[0]+','+JSON.stringify(item)+']';
+			if(window.localStorage.getItem(App.prefix+'-queue')!=null){
+				q=window.localStorage.getItem(App.prefix+'-queue').substring(0,window.localStorage.getItem(App.prefix+'-queue').lastIndexOf(']'))+','+JSON.stringify(item)+']';
 			}
 			else q='['+JSON.stringify(item)+']';
-			window.localStorage.setItem('ca-queue',q);
-			carersApp.updateAppointmentStatus(item.appointment_index_value,'Pending',carersApp.loadRoster);
+			window.localStorage.setItem(App.prefix+'-queue',q);
+			App.updateItemStatus(item.form_index_value,'Pending',App.loadListData);
 		},
 		
 	
 	
-	//APPOINTMENT QUEUE + UPLOAD
+	//FORM UPLOAD + QUEUE
 	
-	//Process appointment submission queue
-	processQueue:function(){
-		var q=$.makeArray(window.localStorage.getItem('ca-queue'));
-		if(q.length>0&&window.navigator.onLine==true){
-			$.ajax({
-				type:'POST',
-				url:'https://www.multibaseit.com.au/ca/process.aspx',
-				dataType:'json',
-				crossDomain:true,
-				data:q[0],
-				processData:false,
-				success:function(data,status,request){
-					carersApp.processQueueResponse();
-				},
-				error:function(request,status,error){
-					carersApp.showServerError(request,status,error);
-				}
-			});
-		}
-	},
-	//Process response and remove appointment from queue
+	//Process form submission queue
+		processQueue:function(){
+			var q=$.makeArray(window.localStorage.getItem(App.prefix+'-queue'));
+			if(q.length>0&&window.navigator.onLine==true){
+				$.ajax({
+					type:'POST',
+					url:'https://www.multibaseit.com.au/ca/process.aspx',
+					dataType:'json',
+					crossDomain:true,
+					data:q[0],
+					processData:false,
+					success:function(data,status,request){
+						App.processQueueResponse();
+					},
+					error:function(request,status,error){
+						App.showServerError(request,status,error);
+					}
+				});
+			}
+		},
+		
+	//Process response and remove item from queue
 		processQueueResponse:function(){
-			var a=JSON.parse(window.localStorage.getItem('ca-queue'));
+			var a=JSON.parse(window.localStorage.getItem(App.prefix+'-queue'));
 			var i=a.shift();
-			if(a.length>0)window.localStorage.setItem('ca-queue',JSON.stringify(a));
-			else window.localStorage.removeItem('ca-queue');
-			carersApp.updateAppointmentStatus(i.appointment_index_value,'Submitted',function(){
-				carersApp.uploadImageFile(
-					i.appointment_photo_value,
-					i.appointment_index_value+'-'+i.appointment_timestamp_value
+			if(a.length>0)window.localStorage.setItem(App.prefix+'-queue',JSON.stringify(a));
+			else window.localStorage.removeItem(App.prefix+'-queue');
+			App.updateItemStatus(i.form_index_value,'Submitted',function(){
+				App.uploadImageFile(
+					i.form_photo_value,
+					i.form_index_value+'-'+i.form_timestamp_value
 				);
 			});
 		},
-	//Update appointment status in stored roster data
-		updateAppointmentStatus:function(id,status,process){
-			var r=JSON.parse(window.localStorage.getItem('ca-roster'));
-			r[id].appointmentStatus=status;
-			window.localStorage.setItem('ca-roster',JSON.stringify(r));
-			$('.roster_item[data-appointment-index='+(id)+']').addClass(status.toLowerCase());
+		
+	//Update item status in stored list data
+		updateItemStatus:function(id,status,process){
+			var q=JSON.parse(window.localStorage.getItem(App.prefix+'-data'));
+			q[id].itemStatus=status;
+			window.localStorage.setItem(App.prefix+'-data',JSON.stringify(q));
+			$('.list_item[data-item-index='+(id)+']').removeClass('pending submitted').addClass(status.toLowerCase());
 			if(typeof process=='function')(process)();
 		},
+		
 	//Upload image file
 		uploadImageFile:function(url,id){
 			if(window.cordova&&url.indexOf(' ')<0){
@@ -854,16 +1040,17 @@ var carersApp={
 					url,
 					'https://www.multibaseit.com.au/ca/image.aspx',
 					function(result){
-						carersApp.processUploadResult(result);
+						App.processUploadResult(result);
 					},
 					function(error){
-						carersApp.processUploadFailure(error);
+						App.processUploadFailure(error);
 					},
 					o
 				);
 			}
-			else carersApp.processQueue();
+			else App.processQueue();
 		},
+		
 	//Process image upload success
 		processUploadResult:function(result){
 			var a=
@@ -871,8 +1058,9 @@ var carersApp={
 				("\nResponse = "+result.response)+
 				("\nSent = "+result.bytesSent);
 			//alert(a);
-			carersApp.processQueue();
+			App.processQueue();
 		},
+		
 	//Process image upload failure
 		processUploadFailure:function(error){
 			var a=
@@ -883,7 +1071,21 @@ var carersApp={
 				("\nUpload error exception = "+error.exception)+
 				("\nUpload error target = "+error.target);
 			//alert(a);
-			carersApp.processQueue();
+			App.processQueue();
 		}
 };
-document.addEventListener('deviceready',$(carersApp.initialise),false);
+
+
+
+function addDeviceEvents(){
+	//Device back button
+		document.addEventListener('backbutton',App.handleBackButton,false);
+	//Device connection state
+		document.addEventListener('online',App.processQueue,false);
+	//Application focus
+		document.addEventListener('resume',App.updateTime,false);
+	//Initialisation
+		$(document).ready(App.initialise);
+}
+if(window.cordova)document.addEventListener('deviceready',addDeviceEvents,false);
+else $(document).ready(App.initialise);
