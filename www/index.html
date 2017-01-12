@@ -5,331 +5,153 @@
 		<meta name="viewport" content="user-scalable=no, initial-scale=1, maximum-scale=1, minimum-scale=1, width=device-width" />
 		<meta name="msapplication-tap-highlight" content="no" />
 		<meta name="format-detection" content="telephone=no">
-		<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.gstatic.com https://*.googleapis.com data: gap: 'unsafe-inline' https://ssl.gstatic.com http://www.multibaseit.com.au; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; media-src *; script-src 'self' https://maps.googleapis.com; img-src 'self' *; connect-src *;" />
+		<meta http-equiv="Content-Security-Policy" content="default-src 'self' https://*.gstatic.com https://*.googleapis.com data: gap: 'unsafe-inline' https://ssl.gstatic.com https://www.multibaseit.com.au; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; media-src *; script-src 'self' https://maps.googleapis.com; img-src 'self' data: *; connect-src *;" />
 		<link rel="stylesheet" type="text/css" href="css/index.css" />
 		<link rel="stylesheet" type="text/css" href="css/index_mobile.css" />
 		<link rel="stylesheet" type="text/css" href="css/index_ios.css" />
 		<link rel="stylesheet" type="text/css" href="css/font-awesome-4.7.0/css/font-awesome.min.css">
-        <title>Community Care</title>
+        <title>Community Carer</title>
     </head>
     <body>
 		<div class="app_layout">
 			
 			<!--LOGIN-->
 			<div class="app_page login_page">
-				<div class="login_layout">
-					<div class="login_logo">
-						<img src="img/640x640.png"/>
-					</div>
-					<form class="login_form" action="index.html" method="post">
-						<h2>Community Care</h2>
-						<div class="form_field">
-							<label for="user">Username</label>
-							<input placeholder="Username" id="user" name="user" type="text" value="Username"/>
-						</div>
-						<div class="form_field">
-							<label for="user">Password</label>
-							<input placeholder="Password" id="pass" name="pass" type="password" value="Password"/>
-						</div>
-						<div class="form_field form_buttons">
-							<input id="login_submit" name="login_submit" type="submit" value="Login"/>
-						</div>
-					</form>
+				<div class="login_logo">
+					<img src="img/640x640.png"/>
 				</div>
+				<form class="login_form" action="index.html" method="post">
+					<h2>Community Carer</h2>
+					<div class="form_field">
+						<label for="user">Carer ID</label>
+						<input placeholder="CarerID" id="user" name="user" type="text" value="CarerID"/>
+					</div>
+					<div class="form_field">
+						<label for="user">Password</label>
+						<input placeholder="Password" id="pass" name="pass" type="password" value="Password"/>
+					</div>
+					<div class="form_field form_buttons">
+						<input id="login_submit" name="login_submit" type="submit" value="Login"/>
+					</div>
+				</form>
 			</div>
 			
-			<!--ROSTER-->
-			<div class="app_page roster_page">
-				<div class="roster_header">
+			<!--LIST-->
+			<div class="app_page list_page">
+				<div class="list_header">
 					<h2>My appointments</h2>
-					<div class="roster_update">
-						<span class="fa fa-refresh fa-lg"></span>Last update <span></span>
+					<div class="list_update">
+						<span class="fa fa-refresh fa-lg"></span>Last updated<span class="update_time"></span>
 					</div>
-					<div class="roster_filter clear_after">
+					<div class="list_filter clear_after">
 						<form class="search_form" action="index.html" method="post">
 							<div class="form_field">
-								<input placeholder="Search" id="search_form_value" name="search_form_value" type="text"/>
+								<input placeholder="Search" id="search_value" name="search_value" type="text"/>
 							</div>
 							<span class="fa fa-search"></span>
-							<a class="roster_filter_clear">
+							<a class="search_clear">
 								<span class="fa fa-close"></span>
 							</a>
 						</form>
 					</div>
+					<div class="list_toggle">
+						<span class="fa fa-eye-slash toggle_hide"></span>
+						<span class="toggle_hide">Hide Completed</span>
+						<span class="fa fa-eye toggle_show"></span>
+						<span class="toggle_show">Show Completed</span>
+					</div>
 				</div>
-				<ul class="roster_list">
-					<li class="roster_item clear_after -data-" data-appointment-index="-data-" data-appointment-geocode="-data-">
-						<span class="roster_date">
-							<span class="roster_day">-data-</span>
+				<ul class="list_items">
+					<li class="list_item clear_after -data-" data-item-index="-data-" data-item-geocode="-data-">
+						<span class="item_date">
+							<span class="item_day">-data-</span>
 						</span>
-						<span class="roster_short_date">-data-</span>
-						<span class="roster_map">
+						<span class="item_short_date">-data-</span>
+						<span class="item_map_link">
 							<span class="fa fa-map-marker fa-lg"></span>
 						</span>
-						<span class="roster_time">
-							<span class="roster_start_time">-data-</span>
-							<span class="roster_finish_time">-data-</span>
+						<span class="item_time">
+							<span class="item_start_time">-data-</span>
+							<span class="item_finish_time">-data-</span>
 						</span>
-						<span class="roster_client">
-							<span class="roster_name">-data- -data-</span>
-							<span class="roster_address">-data- -data-</span>
-							<span class="roster_service">-data-</span>
+						<span class="item_client">
+							<span class="item_client_name">-data- -data-</span>
+							<span class="item_client_address">-data- -data-</span>
+							<span class="item_client_service">-data-</span>
 						</span>
 					</li>
 				</ul>
-				<div class="roster_overlay overlay">
-					<div class="overlay_layout">
-						<div class="overlay_inner">
-							<ul class="roster_menu">
-								<li>
-									<div class="roster_menu_form">
-										<span class="fa fa-file-text"></span>
-										<span>Form</span>
-									</div>
-								</li>
-								<li>
-									<div class="roster_menu_map">
-										<span class="fa fa-map-marker"></span>
-										<span>Map</span>
-									</div>
-								</li>
-							</ul>
-						</div>
-					</div>
-					<a class="close_button">
-						<span class="fa fa-close"></span>
-					</a>
-				</div>
 				<a class="close_button">
 					<span class="fa fa-close"></span>
 				</a>
 			</div>
 			
-			<!--APPOINTMENT-->
-			<div class="app_page appointment_page">
-				<div class="appointment_layout">
-					<form class="appointment_form" action="index.html" method="post">
-						<div class="appointment_details">
-							<h2>-data- -data-</h2>
-							<div class="appointment_date">-data-</div>
-							<div class="appointment_schedule">-data---data-</div>
-							<div class="appointment_service">-data-</div>
+			<!--FORM-->
+			<div class="app_page form_page">
+				<form class="item_form" action="index.html" method="post">
+					<div class="item_form_header">
+						<h2>-data- -data-</h2>
+						<div class="item_form_date">-data-</div>
+						<div class="item_form_schedule">-data---data-</div>
+						<div class="item_form_service">-data-</div>
+					</div>
+					<div class="location_header">
+						<span class="fa fa-map-marker"></span>
+						<span class="location_check">Checking your location...</span>
+						<span class="location_captured">Your location has been captured</span>
+						<span class="location_error">Your location cannot be verified</span>
+					</div>
+					<div class="form_field_columns form_times clear_after">
+						<div class="form_field form_start">
+							<span class="fa fa-clock-o"></span>
+							<label for="form_start">Start time<span>HH:MM</span></label>
+							<input class="hidden_field" id="form_start_value" name="form_start_value" data-required="true" type="text"/>
 						</div>
-						<div class="appointment_location">
-							<span class="fa fa-map-marker"></span>
-							<span class="location_check">Checking your location...</span>
-							<span class="location_captured">Your location has been captured</span>
-							<span class="location_error">Your location cannot be verified</span>
+						<div class="form_field form_finish">
+							<span class="fa fa-clock-o fa-flip-horizontal"></span>
+							<label for="form_finish">Finish time<span>HH:MM</span></label>
+							<input class="hidden_field" id="form_finish_value" name="form_finish_value" data-required="true" type="text"/>
 						</div>
-						<div class="form_field_columns appointment_times clear_after">
-							<div class="form_field appointment_start">
-								<span class="fa fa-clock-o"></span>
-								<label for="appointment_start">Start time<span>HH:MM</span></label>
-								<input class="hidden_field" id="appointment_start_value" name="appointment_start_value" data-required="true" type="text"/>
-							</div>
-							<div class="form_field appointment_finish">
-								<span class="fa fa-clock-o fa-flip-horizontal"></span>
-								<label for="appointment_finish">Finish time<span>HH:MM</span></label>
-								<input class="hidden_field" id="appointment_finish_value" name="appointment_finish_value" data-required="true" type="text"/>
-							</div>
-							<div class="form_field appointment_travel">
-								<span class="fa fa-car"></span>
-								<label for="appointment_travel">Travel KM<span>0</span></label>
-								<input class="hidden_field" id="appointment_travel_value" name="appointment_travel_value" value="0" data-required="true" type="text"/>
-							</div>
-						</div>
-						<div class="form_field appointment_notes">
-							<label for="appointment_notes_value">Appointment notes</label>
-							<textarea placeholder="Appointment notes" id="appointment_notes_value" name="appointment_notes_value" rows="6"></textarea>
-							<div class="note_buttons">
-								<div class="note_add">
-									<span class="fa fa-magic fa-2x"></span>
-								</div>
-							</div>
-						</div>
-						<div class="form_field_columns appointment_images clear_after">
-							<div class="form_field appointment_sign">
-								<span class="fa fa-pencil"></span>
-								<label for="appointment_sign_value">Signature</label>
-								<input class="hidden_field" id="appointment_sign_value" name="appointment_sign_value" data-required="true" type="text"/>
-							</div>
-							<div class="form_field appointment_photo">
-								<span class="fa fa-camera"></span>
-								<label for="appointment_photo_value">Photo</label>
-								<input class="hidden_field" id="appointment_photo_value" name="appointment_photo_value" value="No camera available" data-required="true" type="text"/>
-								<input class="hidden_field" id="appointment_annotation_value" name="appointment_annotation_value" type="text"/>
-							</div>
-						</div>
-						<div class="form_field form_buttons">
-							<div class="form_fields_hidden">
-								<label for="appointment_index_value">Appointment index</label>
-								<input class="hidden_field" id="appointment_index_value" name="appointment_index_value" type="text"/>
-								<label for="appointment_geocode_value">Current geocode</label>
-								<input class="hidden_field" id="appointment_geocode_value" name="appointment_geocode_value" type="text"/>
-								<label for="appointment_timestamp_value">Timestamp</label>
-								<input class="hidden_field" id="appointment_timestamp_value" name="appointment_timestamp_value" type="text"/>
-							</div>
-							<input id="appointment_submit" name="appointment_submit" type="submit" value="Save"/>
-						</div>
-					</form>
-				</div>
-				<div class="appointment_overlay overlay">
-					<div class="overlay_layout">
-						<div class="overlay_inner">
-							
-							<!--CLOCK PICKER-->
-							<div class="overlay_panel clock_panel">
-								<div class="clock_time">
-									<span class="display_hours">HH</span>:<span class="display_mins">MM</span>
-								</div>
-								<div class="clock_face">
-									<div class="clock_ring clock_hours">
-										<div class="clock_number clock_0">
-											<span class="display_split_12">12</span>
-											<span class="display_split_24">00</span>
-										</div>
-										<div class="clock_number clock_1">
-											<span class="display_split_12">01</span>
-											<span class="display_split_24">13</span>
-										</div>
-										<div class="clock_number clock_2">
-											<span class="display_split_12">02</span>
-											<span class="display_split_24">14</span>
-										</div>
-										<div class="clock_number clock_3">
-											<span class="display_split_12">03</span>
-											<span class="display_split_24">15</span>
-										</div>
-										<div class="clock_number clock_4">
-											<span class="display_split_12">04</span>
-											<span class="display_split_24">16</span>
-										</div>
-										<div class="clock_number clock_5">
-											<span class="display_split_12">05</span>
-											<span class="display_split_24">17</span>
-										</div>
-										<div class="clock_number clock_6">
-											<span class="display_split_12">06</span>
-											<span class="display_split_24">18</span>
-										</div>
-										<div class="clock_number clock_7">
-											<span class="display_split_12">07</span>
-											<span class="display_split_24">19</span>
-										</div>
-										<div class="clock_number clock_8">
-											<span class="display_split_12">08</span>
-											<span class="display_split_24">20</span>
-										</div>
-										<div class="clock_number clock_9">
-											<span class="display_split_12">09</span>
-											<span class="display_split_24">21</span>
-										</div>
-										<div class="clock_number clock_10">
-											<span class="display_split_12">10</span>
-											<span class="display_split_24">22</span>
-										</div>
-										<div class="clock_number clock_11">
-											<span class="display_split_12">11</span>
-											<span class="display_split_24">23</span>
-										</div>
-									</div>
-									<div class="clock_ring clock_mins">
-										<div class="clock_number clock_0">00</div>
-										<div class="clock_number clock_1">05</div>
-										<div class="clock_number clock_2">10</div>
-										<div class="clock_number clock_3">15</div>
-										<div class="clock_number clock_4">20</div>
-										<div class="clock_number clock_5">25</div>
-										<div class="clock_number clock_6">30</div>
-										<div class="clock_number clock_7">35</div>
-										<div class="clock_number clock_8">40</div>
-										<div class="clock_number clock_9">45</div>
-										<div class="clock_number clock_10">50</div>
-										<div class="clock_number clock_11">55</div>
-									</div>
-									<div class="clock_hands">
-										<div class="clock_hand_hours"></div>
-										<div class="clock_hand_mins"></div>
-									</div>
-								</div>
-								<div class="clock_split clear_after">
-									<div class="clock_split_12"><span>AM</span></div>
-									<div class="clock_split_icon"><span class="fa fa-adjust fa-lg"></span></div>
-									<div class="clock_split_24"><span>PM</span></div>
-								</div>
-								<div class="overlay_icon">
-									<span class="fa fa-clock-o fa-2x"></span>
-								</div>
-							</div>
-						
-							<!--TRAVEL PICKER-->
-							<div class="overlay_panel travel_panel">
-								<div class="travel_digits">
-									<span class="display_km">0</span> KM
-								</div>
-								<div class="form_slider">
-									<div class="slider_track"></div>
-									<div class="slider_handle"></div>
-									<div class="slider_numbers">
-										<div class="slider_number slider_number_100"><span>100</span></div>
-										<div class="slider_number slider_number_90"><span>90</span></div>
-										<div class="slider_number slider_number_80"><span>80</span></div>
-										<div class="slider_number slider_number_70"><span>70</span></div>
-										<div class="slider_number slider_number_60"><span>60</span></div>
-										<div class="slider_number slider_number_50"><span>50</span></div>
-										<div class="slider_number slider_number_40"><span>40</span></div>
-										<div class="slider_number slider_number_30"><span>30</span></div>
-										<div class="slider_number slider_number_20"><span>20</span></div>
-										<div class="slider_number slider_number_10"><span>10</span></div>
-										<div class="slider_number slider_number_0"><span>0</span></div>
-									</div>
-								</div>
-								<div class="overlay_icon">
-									<span class="fa fa-car fa-2x"></span>
-								</div>
-							</div>
-							
-							<!--NOTE PICKER-->
-							<div class="overlay_panel note_panel">
-								<ul class="note_list">
-									<li class="note_item clear_after">
-										<div class="note_text">-data-</div>
-										<div class="note_tick">
-											<span class="fa fa-check fa-lg"></span>
-										</div>
-									</li>
-								</ul>
-								<div class="overlay_icon">
-									<span class="fa fa-magic fa-2x"></span>
-								</div>
-							</div>
-							
-							<!--SIGNATURE PANEL-->
-							<div class="overlay_panel signature_panel">
-								<div class="signature_layout canvas_layout">
-									<canvas id="signature_image" height="100" width="100"></canvas>
-								</div>
-								<div class="overlay_icon">
-									<span class="fa fa-pencil fa-2x"></span>
-								</div>
-							</div>
-							
-							<!--PHOTO PANEL-->
-							<div class="overlay_panel photo_panel">
-								<div class="photo_layout canvas_layout">
-									<canvas id="photo_image" height="100" width="100"></canvas>
-								</div>
-								<div class="overlay_icon">
-									<span class="fa fa-camera fa-2x"></span>
-								</div>
-							</div>
-							
+						<div class="form_field form_travel">
+							<span class="fa fa-car"></span>
+							<label for="form_travel">Travel KM<span>0</span></label>
+							<input class="hidden_field" id="form_travel_value" name="form_travel_value" value="0" data-required="true" type="text"/>
 						</div>
 					</div>
-					<a class="close_button">
-						<span class="fa fa-close"></span>
-					</a>
-				</div>
+					<div class="form_field form_notes">
+						<label for="form_notes_value">Appointment notes</label>
+						<textarea placeholder="Appointment notes" id="form_notes_value" name="form_notes_value" rows="6"></textarea>
+						<div class="note_buttons">
+							<div class="note_add">
+								<span class="fa fa-magic fa-2x"></span>
+							</div>
+						</div>
+					</div>
+					<div class="form_field_columns form_images clear_after">
+						<div class="form_field form_sign">
+							<span class="fa fa-pencil"></span>
+							<label for="form_sign_value">Signature</label>
+							<input class="hidden_field" id="form_sign_value" name="form_sign_value" data-required="true" type="text"/>
+						</div>
+						<div class="form_field form_photo">
+							<span class="fa fa-camera"></span>
+							<label for="form_photo_value">Photo</label>
+							<input class="hidden_field" id="form_photo_value" name="form_photo_value" value="No photo captured" data-required="true" type="text"/>
+							<input class="hidden_field" id="form_annotation_value" name="form_annotation_value" type="text"/>
+						</div>
+					</div>
+					<div class="form_field form_buttons">
+						<div class="form_fields_hidden">
+							<label for="form_index_value">Appointment index</label>
+							<input class="hidden_field" id="form_index_value" name="form_index_value" type="text"/>
+							<label for="form_geocode_value">Current geocode</label>
+							<input class="hidden_field" id="form_geocode_value" name="form_geocode_value" type="text"/>
+							<label for="form_timestamp_value">Timestamp</label>
+							<input class="hidden_field" id="form_timestamp_value" name="form_timestamp_value" type="text"/>
+						</div>
+						<input id="form_submit" name="form_submit" type="submit" value="Save"/>
+					</div>
+				</form>
 				<a class="close_button">
 					<span class="fa fa-close"></span>
 				</a>
@@ -343,6 +165,204 @@
 				<div class="overlay_icon map_icon">
 					<span class="fa fa-map-marker fa-2x"></span>
 					<span class="fa fa-refresh fa-spin fa-2x"></span>
+				</div>
+				<div class="map_directions">
+					<ul class="directions_list">
+						<li class="directions_step clear_after">
+							<span class="directions_text">-data-</span>
+							<span class="directions_distance">-data-</span>
+						</li>
+					</ul>
+				</div>
+				<div class="overlay_action map_text_link">
+					<div class="overlay_action_link">
+						<span class="fa fa-level-down fa-rotate-270"></span>
+						<span class="fa fa-map"></span>
+					</div>
+				</div>
+				<a class="close_button">
+					<span class="fa fa-close"></span>
+				</a>
+			</div>
+			
+			<!--CLOCK OVERLAY-->
+			<div class="clock_page overlay">
+				<div class="overlay_layout">
+					<div class="overlay_inner">
+						<div class="clock_time">
+							<span class="display_hours">HH</span>:<span class="display_mins">MM</span>
+						</div>
+						<div class="clock_face">
+							<div class="clock_ring clock_hours">
+								<div class="clock_number clock_0">
+									<span class="display_split_12">12</span>
+									<span class="display_split_24">00</span>
+								</div>
+								<div class="clock_number clock_1">
+									<span class="display_split_12">01</span>
+									<span class="display_split_24">13</span>
+								</div>
+								<div class="clock_number clock_2">
+									<span class="display_split_12">02</span>
+									<span class="display_split_24">14</span>
+								</div>
+								<div class="clock_number clock_3">
+									<span class="display_split_12">03</span>
+									<span class="display_split_24">15</span>
+								</div>
+								<div class="clock_number clock_4">
+									<span class="display_split_12">04</span>
+									<span class="display_split_24">16</span>
+								</div>
+								<div class="clock_number clock_5">
+									<span class="display_split_12">05</span>
+									<span class="display_split_24">17</span>
+								</div>
+								<div class="clock_number clock_6">
+									<span class="display_split_12">06</span>
+									<span class="display_split_24">18</span>
+								</div>
+								<div class="clock_number clock_7">
+									<span class="display_split_12">07</span>
+									<span class="display_split_24">19</span>
+								</div>
+								<div class="clock_number clock_8">
+									<span class="display_split_12">08</span>
+									<span class="display_split_24">20</span>
+								</div>
+								<div class="clock_number clock_9">
+									<span class="display_split_12">09</span>
+									<span class="display_split_24">21</span>
+								</div>
+								<div class="clock_number clock_10">
+									<span class="display_split_12">10</span>
+									<span class="display_split_24">22</span>
+								</div>
+								<div class="clock_number clock_11">
+									<span class="display_split_12">11</span>
+									<span class="display_split_24">23</span>
+								</div>
+							</div>
+							<div class="clock_ring clock_mins">
+								<div class="clock_number clock_0">00</div>
+								<div class="clock_number clock_1">05</div>
+								<div class="clock_number clock_2">10</div>
+								<div class="clock_number clock_3">15</div>
+								<div class="clock_number clock_4">20</div>
+								<div class="clock_number clock_5">25</div>
+								<div class="clock_number clock_6">30</div>
+								<div class="clock_number clock_7">35</div>
+								<div class="clock_number clock_8">40</div>
+								<div class="clock_number clock_9">45</div>
+								<div class="clock_number clock_10">50</div>
+								<div class="clock_number clock_11">55</div>
+							</div>
+							<div class="clock_hands">
+								<div class="clock_hand_hours"></div>
+								<div class="clock_hand_mins"></div>
+							</div>
+						</div>
+						<div class="clock_split clear_after">
+							<div class="clock_split_12"><span>AM</span></div>
+							<div class="clock_split_icon"><span class="fa fa-adjust fa-lg"></span></div>
+							<div class="clock_split_24"><span>PM</span></div>
+						</div>
+						<div class="overlay_icon">
+							<span class="fa fa-clock-o fa-2x"></span>
+						</div>
+					</div>
+				</div>
+				<a class="close_button">
+					<span class="fa fa-close"></span>
+				</a>
+			</div>
+						
+			<!--TRAVEL OVERLAY-->
+			<div class="travel_page overlay">
+				<div class="overlay_layout">
+					<div class="overlay_inner">
+						<div class="travel_digits">
+							<span class="display_km">0</span> KM
+						</div>
+						<div class="form_slider">
+							<div class="slider_track"></div>
+							<div class="slider_handle"></div>
+							<div class="slider_numbers">
+								<div class="slider_number slider_number_100"><span>100</span></div>
+								<div class="slider_number slider_number_90"><span>90</span></div>
+								<div class="slider_number slider_number_80"><span>80</span></div>
+								<div class="slider_number slider_number_70"><span>70</span></div>
+								<div class="slider_number slider_number_60"><span>60</span></div>
+								<div class="slider_number slider_number_50"><span>50</span></div>
+								<div class="slider_number slider_number_40"><span>40</span></div>
+								<div class="slider_number slider_number_30"><span>30</span></div>
+								<div class="slider_number slider_number_20"><span>20</span></div>
+								<div class="slider_number slider_number_10"><span>10</span></div>
+								<div class="slider_number slider_number_0"><span>0</span></div>
+							</div>
+						</div>
+						<div class="overlay_icon">
+							<span class="fa fa-car fa-2x"></span>
+						</div>
+					</div>
+				</div>
+				<a class="close_button">
+					<span class="fa fa-close"></span>
+				</a>
+			</div>
+							
+			<!--NOTE OVERLAY-->
+			<div class="note_page overlay">
+				<div class="overlay_layout">
+					<div class="overlay_inner">
+						<ul class="note_list">
+							<li class="note_item clear_after">
+								<div class="note_text">-data-</div>
+								<div class="note_tick">
+									<span class="fa fa-check fa-lg"></span>
+								</div>
+							</li>
+						</ul>
+						<div class="overlay_icon">
+							<span class="fa fa-magic fa-2x"></span>
+						</div>
+					</div>
+				</div>
+				<a class="close_button">
+					<span class="fa fa-close"></span>
+				</a>
+			</div>
+			
+			<!--SIGNATURE OVERLAY-->
+			<div class="signature_page overlay">
+				<div class="signature_layout canvas_layout">
+					<canvas id="signature_image" height="100" width="100"></canvas>
+				</div>
+				<div class="overlay_icon">
+					<span class="fa fa-pencil fa-2x"></span>
+				</div>
+				<div class="overlay_action signature_clear">
+					<div class="overlay_action_link">
+						<span class="fa fa-trash"></span>
+					</div>
+				</div>
+				<a class="close_button">
+					<span class="fa fa-close"></span>
+				</a>
+			</div>
+			
+			<!--PHOTO OVERLAY-->
+			<div class="photo_page overlay">
+				<div class="photo_layout canvas_layout">
+					<canvas id="photo_image" height="100" width="100"></canvas>
+				</div>
+				<div class="overlay_icon">
+					<span class="fa fa-camera fa-2x"></span>
+				</div>
+				<div class="overlay_action photo_clear">
+					<div class="overlay_action_link">
+						<span class="fa fa-trash"></span>
+					</div>
 				</div>
 				<a class="close_button">
 					<span class="fa fa-close"></span>
@@ -377,11 +397,11 @@
 			
 			<noscript><p>Javascript must be enabled to use this application.</p></noscript>
 		</div>
-        <script type="text/javascript" src="cordova.js"></script>
-        <script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
-        <script type="text/javascript" src="js/jquery-ui.min.js"></script>
-        <script type="text/javascript" src="js/signature_pad.min.js"></script>
-        <script type="text/javascript" src="js/index.js"></script>
-		<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBY1waJYH5-37J203QwZOD_QykCh7SN0VY"></script>
+		<script type="text/javascript" src="cordova.js"></script>
+		<script type="text/javascript" src="js/jquery-3.1.1.min.js"></script>
+		<script type="text/javascript" src="js/jquery-ui.min.js"></script>
+		<script type="text/javascript" src="js/signature_pad.min.js"></script>
+		<script type="text/javascript" src="js/index.js"></script>
+		<div id="google_script" data-src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBY1waJYH5-37J203QwZOD_QykCh7SN0VY"></div>
     </body>
 </html>
