@@ -18,33 +18,25 @@ padding:2em 0;
 
 
 
-/*LOGIN PAGE*/
+/*ITEM LIST*/
 
-div.login_logo{
-margin:-2em auto 0 auto;
-}
-
-
-
-/*ROSTER*/
-
-li.roster_item{
+li.list_item{
 padding:1em 0.5em;
 border-top:1px solid lightgrey;
 }
-li.roster_divider{
+li.item_divider{
 border-top:0.25em solid lightgrey;
 }
-span.roster_date{
+span.item_date{
 display:none;
 visibility:visible;
 float:none;
 margin:0 auto;
 }
-li.roster_divider span.roster_date{
+li.item_divider span.item_date{
 display:block;
 }
-span.roster_short_date{
+span.item_short_date{
 display:none;
 visibility:visible;
 float:none;
@@ -56,26 +48,54 @@ padding:0 0 1em 0;
 text-align:center;
 border-bottom:1px solid lightgrey;
 }
-li.roster_divider span.roster_short_date{
+li.item_divider span.item_short_date{
 display:block;
 }
 
 
 
-/*ROSTER PAGE - SEARCH RESULTS*/
+/*ITEM LIST - SEARCH RESULTS*/
 
-ul.roster_list_filtered span.roster_date,
-ul.roster_list_filtered span.roster_short_date{
+ul.list_items.filtered li.filtered_divider span.item_date,
+ul.list_items.filtered li.filtered_divider span.item_short_date{
 display:block;
 }
-ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_date,
-ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_short_date{
+
+
+
+/*ITEM LIST - TOGGLE*/
+
+div.list_page.list_toggled li.list_item.pending,
+div.list_page.list_toggled li.list_item.submitted,
+div.list_page.list_toggled li.list_item.filtered.pending,
+div.list_page.list_toggled li.list_item.filtered.submitted{
 display:none;
 }
+div.list_page.list_toggled span.toggle_show{
+display:inline-block;
+}
+div.list_page.list_toggled li.toggled_divider span.item_date,
+div.list_page.list_toggled li.toggled_divider span.item_short_date{
+display:block;
+}
 
 
 
-/*APPOINTMENT PAGE - NOTES*/
+/*ITEM LIST - MAP*/
+
+ul.directions_list{
+padding:0;
+}
+li.directions_step{
+padding:1em;
+}
+span.directions_distance{
+right:1em;
+}
+
+
+
+/*ITEM FORM - NOTES*/
 
 li.note_item{
 padding:1em 0.5em;
