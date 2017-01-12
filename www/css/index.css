@@ -26,7 +26,8 @@ overflow:hidden;
 }
 h1,
 h2,
-h3{
+h3,
+form{
 margin:0;
 padding:0;
 text-align:center;
@@ -37,7 +38,7 @@ font-weight:normal;
 
 /*LAYOUT*/
 
-.clear_after:after{
+*.clear_after:after{
 content:'';
 display:table;
 clear:both;
@@ -67,7 +68,7 @@ left:0;
 right:0;
 bottom:0;
 z-index:99;
-overflow:auto;
+overflow:hidden;
 text-align:center;
 background:white;
 }
@@ -122,19 +123,63 @@ a.confirm_button > span:nth-child(2){
 display:inline-block;
 vertical-align:middle;
 }
+div.overlay_icon{
+position:absolute;
+top:0;
+left:0;
+right:0;
+height:3em;
+line-height:3em;
+color:dimgrey;
+background:white;
+}
+div.overlay_icon > span.fa{
+display:block;
+height:2em;
+width:2em;
+margin:0.5em auto;
+line-height:2em;
+font-size:100%;
+color:white;
+background:lightgrey;
+border-radius:50%;
+}
+div.overlay_action{
+position:fixed;
+bottom:1em;
+left:0;
+right:0;
+height:3em;
+width:3em;
+margin:auto;
+background:white;
+border-radius:50%;
+box-shadow:0 0.125em 0.25em rgba(0,0,0,0.33);
+}
+div.overlay_action_link{
+height:2em;
+width:2em;
+margin:0.5em;
+line-height:2em;
+text-align:center;
+color:white;
+background:skyblue;
+border-radius:50%;
+}
 
 
 
 /*ERROR MESSAGES*/
 
 div.error_page{
+background:white;
 }
 div.error_page.error{
 background:darkred;
 color:white;
 }
-div.error_page.confirm,
-div.error_page.warning{
+div.error_page.warning,
+div.error_page.confirm{
 background:darkorange;
 color:white;
 }
@@ -150,6 +195,9 @@ display:inline-block;
 }
 div.error_text{
 margin:0.25em 20% 0 20%;
+}
+div.error_text h2{
+margin:0 0 0.83em 0;
 }
 
 
@@ -172,9 +220,9 @@ text-align:center;
 font-size:75%;
 color:grey;
 }
-div.form_field input[type=text],
-div.form_field input[type=password],
-div.form_field textarea,
+input[type=text],
+input[type=password],
+textarea,
 button{
 width:100%;
 padding:0.5em 1em;
@@ -185,22 +233,23 @@ background:whitesmoke;
 border:0;
 box-sizing:border-box;
 }
-div.form_field input:focus,
-div.form_field textarea:focus,
+input:focus,
+textarea:focus,
 button:focus{
 outline:none;
 }
-div.form_field textarea{
+textarea{
 padding:0;
 border:1em solid whitesmoke;
 resize:none;
 -webkit-appearance:none;
 appearance:none;
 }
-div.form_field input[type=submit],
-div.form_field input[type=reset],
+input[type=submit],
+input[type=reset],
 button{
 width:100%;
+max-width:12em;
 margin:1em 0;
 padding:1.25em;
 text-align:center;
@@ -215,30 +264,28 @@ box-shadow:0 -0.33em 0 rgba(0,0,0,0.1) inset;
 -webkit-appearance:none;
 appearance:none;
 }
-button{
-border:0;
+button > span.fa{
+margin:0 0.5em 0 -1em;
 }
 div.form_buttons{
-margin:0;
+margin:1em 0;
 text-align:center;
 }
+div.form_buttons > label,
+div.form_buttons > input[type=text]{
+position:absolute;
+top:-999em;
+}
+div.form_fields_hidden > label,
 input.hidden_field{
 position:absolute;
-top:-999em;
-background:red !important;
-color:white;
-}
-div.form_fields_hidden{
-position:absolute;
-top:-999em;
+left:-999em;
 }
 
 
 
 /*LOGIN PAGE*/
 
-div.login_page{
-}
 div.login_logo{
 height:12em;
 width:12em;
@@ -267,44 +314,49 @@ max-width:60%;
 
 
 
-/*ROSTER PAGE*/
+/*ITEM LIST*/
 
-div.roster_page{
-}
-div.roster_header{
+div.list_header{
 display:table;
 margin:0 auto;
 }
-div.roster_update{
+div.list_update{
 padding:0.5em 0 1em 0;
 text-align:center;
 }
-div.roster_update span.fa{
+div.list_update span.fa{
 margin:0 0.33em 0 0;
 color:skyblue;
 }
-div.roster_filter{
+span.update_time{
+margin:0 0 0 0.25em;
+}
+div.list_filter{
 margin:0 0 2em 0;
 }
-div.roster_filter form{
+div.list_filter form{
 position:relative;
 }
-div.roster_filter div.form_field{
+div.list_filter div.form_field{
 margin:0;
 }
-div.roster_filter form > span.fa{
+div.list_filter form > span.fa{
+display:block;
 position:absolute;
 top:0;
+left:0;
 height:2em;
 width:2em;
 line-height:2em;
 text-align:center;
 color:grey;
 }
-div.roster_filter input[type=text]{
+div.list_filter input[type=text]{
+height:2em;
 padding:0.5em 2em;
 }
-a.roster_filter_clear{
+a.search_clear{
+display:block;
 position:absolute;
 display:none;
 top:0;
@@ -314,42 +366,25 @@ width:2em;
 line-height:2em;
 text-align:center;
 }
-ul.roster_list{
-margin:0;
+ul.list_items{
+margin:1em 0 0 0;
 padding:0;
 list-style:none;
 }
-li.roster_item{
+li.list_item{
 clear:left;
 margin:0;
 padding:1em 0;
 list-style:none;
 border-top:1px solid lightgrey;
 }
-li.roster_divider{
+li.item_divider{
 border-top:0.25em solid lightgrey;
 }
-li.roster_item:first-child{
+li.list_item:first-child{
 border-top:0;
 }
-li.roster_item.pending span.roster_time:after{
-content:'\f0ee';
-display:block;
-margin:0 auto;
-text-align:center;
-font-family:FontAwesome;
-font-size:87.5%;
-color:grey;
-}
-li.roster_item.submitted span.roster_time:after{
-content:'\f00c';
-display:block;
-margin:0 auto;
-text-align:center;
-font-family:FontAwesome;
-color:skyblue;
-}
-span.roster_date{
+span.item_date{
 display:block;
 visibility:hidden;
 float:left;
@@ -362,14 +397,14 @@ color:white;
 background:lightgrey;
 border-radius:50%;
 }
-li.roster_divider span.roster_date{
+li.item_divider span.item_date{
 visibility:visible;
 }
-span.roster_day{
+span.item_day{
 margin:0.125em 0 0 0;
 font-size:137.5%;
 }
-span.roster_short_date{
+span.item_short_date{
 display:block;
 visibility:hidden;
 float:left;
@@ -378,26 +413,26 @@ width:2.5em;
 line-height:3em;
 margin:0 1em 0 0;
 }
-li.roster_divider span.roster_short_date{
+li.item_divider span.item_short_date{
 visibility:visible;
 }
-span.roster_client{
+span.item_client{
 display:block;
 float:left;
 }
-span.roster_client > span{
+span.item_client > span{
 display:block;
 text-align:left;
 }
-span.roster_name{
+span.item_client_name{
 }
-span.roster_address{
+span.item_client_address{
 font-size:75%;
 }
-span.roster_service{
+span.item_client_service{
 font-size:87.5%;
 }
-span.roster_map{
+span.item_map_link{
 float:right;
 display:block;
 height:2em;
@@ -408,51 +443,68 @@ color:white;
 background:skyblue;
 border-radius:50%;
 }
-li.roster_item.pending span.roster_map,
-li.roster_item.submitted span.roster_map{
-background:lightgrey;
-}
-span.roster_time{
+span.item_time{
 display:block;
 float:right;
 width:4em;
 }
-span.roster_time > span{
+span.item_time > span{
 display:block;
 text-align:center;
 }
-span.roster_start_time{
+span.item_start_time{
 }
-span.roster_finish_time{
+span.item_finish_time{
 font-size:75%;
 }
 
 
 
-/*ROSTER PAGE - SEARCH RESULTS*/
+/*ITEM LIST - STATUS UPDATES*/
 
-ul.roster_list_filtered li{
+li.list_item.pending span.item_time:after{
+content:'\f0ee';
+display:block;
+margin:0 auto;
+text-align:center;
+font-family:FontAwesome;
+font-size:87.5%;
+color:grey;
+}
+li.list_item.submitted span.item_time:after{
+content:'\f00c';
+display:block;
+margin:0 auto;
+text-align:center;
+font-family:FontAwesome;
+color:skyblue;
+}
+li.list_item.pending span.item_map_link,
+li.list_item.submitted span.item_map_link{
+background:lightgrey;
+}
+
+
+
+/*ITEM LIST - SEARCH RESULTS*/
+
+ul.list_items.filtered li{
 display:none;
 }
-ul.roster_list_filtered li.roster_item_filtered{
+ul.list_items.filtered li.filtered{
 display:block;
-border-top:0.25em solid lightgrey;
 }
-ul.roster_list_filtered li.roster_item_filtered.first_item{
-border-top:0;
-}
-ul.roster_list_filtered li.roster_item_filtered_sibling{
-border-top:1px solid lightgrey;
-}
-ul.roster_list_filtered span.roster_date,
-ul.roster_list_filtered span.roster_short_date{
-visibility:visible;
-}
-ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_date,
-ul.roster_list_filtered li.roster_item_filtered_sibling span.roster_short_date{
+ul.list_items.filtered span.item_date,
+ul.list_items.filtered span.item_short_date{
 visibility:hidden;
 }
-ul.roster_list_filtered span.roster_name:after{
+ul.list_items.filtered li.filtered_divider{
+border-top:0.25em solid lightgrey;
+}
+ul.list_items.filtered li.no_border{
+border-top:0 !important;
+}
+ul.list_items.filtered li.filtered span.item_client_name:after{
 content:'\f0b0';
 display:inline-block;
 margin:0 0 0 0.25em;
@@ -460,10 +512,58 @@ font-family:FontAwesome;
 font-weight:normal;
 color:red;
 }
+ul.list_items.filtered li.filtered_divider span.item_date,
+ul.list_items.filtered li.filtered_divider span.item_short_date{
+visibility:visible;
+}
 
 
 
-/*ROSTER PAGE - MAP*/
+/*ITEM LIST - TOGGLE*/
+
+div.list_toggle{
+text-align:center;
+}
+span.toggle_show,
+span.toggle_hide{
+display:inline-block;
+font-size:75%;
+text-transform:uppercase;
+color:skyblue;
+}
+div.list_toggle span.fa{
+font-size:100%;
+color:skyblue;
+}
+div.list_toggle.inactive span.toggle_show,
+div.list_toggle.inactive span.toggle_hide{
+color:lightgrey;
+}
+span.toggle_show,
+div.list_page.list_toggled span.toggle_hide,
+div.list_page.list_toggled li.list_item.pending,
+div.list_page.list_toggled li.list_item.submitted,
+div.list_page.list_toggled li.list_item.filtered.pending,
+div.list_page.list_toggled li.list_item.filtered.submitted{
+display:none;
+}
+div.list_page.list_toggled span.toggle_show{
+display:inline-block;
+}
+div.list_page.list_toggled li.toggled_divider{
+border-top:0.25em solid lightgrey;
+}
+div.list_page.list_toggled li.no_border{
+border-top:0 !important;
+}
+div.list_page.list_toggled li.toggled_divider span.item_date,
+div.list_page.list_toggled li.toggled_divider span.item_short_date{
+visibility:visible;
+}
+
+
+
+/*ITEM LIST - MAP*/
 
 div.map_layout{
 position:absolute;
@@ -496,31 +596,83 @@ position:relative;
 height:100%;
 width:100%;
 }
+div.map_text_link{
+display:none;
+}
+div.map_text_link.active span.fa:nth-child(2),
+div.map_text_link span.fa:nth-child(1){
+display:none;
+}
+div.map_text_link.active span.fa:nth-child(1){
+display:inline-block;
+}
+div.map_directions{
+display:none;
+position:absolute;
+top:3em;
+bottom:0;
+left:0;
+right:0;
+overflow-y:auto;
+background:white;
+}
+ul.directions_list{
+margin:0 0 4em 0;
+padding:0 2em;
+list-style:none;
+}
+li.directions_step{
+position:relative;
+margin:0;
+padding:1em 0;
+list-style:none;
+border-top:1px solid lightgrey;
+}
+li.directions_step:first-child{
+border-top:0;
+}
+span.directions_text{
+display:block;
+text-align:left;
+padding:0 6em 0 0;
+}
+span.directions_text > div[style]{
+font-size:75% !important;
+color:grey;
+}
+span.directions_distance{
+display:block;
+position:absolute;
+top:1em;
+right:0;
+width:6em;
+text-align:right;
+}
 
 
 
-/*APPOINTMENT PAGE - FORM*/
+/*FORM PAGE*/
 
-form.appointment_form{
+form.item_form{
 margin:0;
 padding:0;
 }
-div.appointment_details{
+div.item_form_header{
 text-align:center;
 }
-div.appointment_details > div{
+div.item_form_header > div{
 display:inline-block;
 margin:0.25em;
 }
-div.appointment_details > div span{
+div.item_form_header > div span{
 display:none;
 margin:0 0.25em 0 0;
 color:grey;
 }
-div.appointment_location{
+div.location_header{
 text-align:center;
 }
-div.appointment_location > span{
+div.location_header > span{
 margin:0 0.25em;
 font-size:75%;
 color:grey;
@@ -546,14 +698,14 @@ font-size:133.33%;
 div.form_field_columns input{
 margin:0;
 }
-div.appointment_times{
+div.form_times{
 margin:2em 0 1em 0;
 }
-div.appointment_images{
+div.form_images{
 width:80%;
 margin:1em auto;
 }
-div.appointment_images div.form_field{
+div.form_images div.form_field{
 width:50%;
 }
 div.form_field span.fa{
@@ -591,14 +743,14 @@ color:#fff;
 background:green;
 border-radius:50%;
 }
-form.appointment_form div.form_buttons input{
+form.item_form div.form_buttons input{
 width:50%;
 margin:1em;
 }
 
 
 
-/*APPOINTMENT PAGE - CLOCKS*/
+/*FORM PAGE - CLOCKS*/
 
 div.clock_time{
 margin:0 0 0.5em 0;
@@ -775,21 +927,10 @@ color:white;
 
 
 
-/*APPOINTMENT PAGE - TRAVEL*/
+/*FORM PAGE - TRAVEL*/
 
-div.travel_panel{
-position:fixed;
-top:6em;
-bottom:3em;
-left:0;
-right:0;
-min-height:24em;
-}
 div.travel_digits{
-position:absolute;
-left:0;
-right:0;
-margin:-2em 0 0 0;
+padding:0.5em 0;
 text-align:center;
 }
 span.display_km{
@@ -797,7 +938,7 @@ font-size:150%;
 }
 div.form_slider{
 position:relative;
-height:100%;
+height:80%;
 min-height:16em;
 width:3em;
 margin:0 auto;
@@ -887,14 +1028,14 @@ display:none;
 
 
 
-/*APPOINTMENT PAGE - NOTES*/
+/*FORM PAGE - NOTES*/
 
-div.appointment_notes{
+div.form_notes{
 position:relative;
 padding:0 3em 0 0;
 background:whitesmoke;
 }
-div.appointment_notes label{
+div.form_notes label{
 display:none;
 }
 div.note_buttons{
@@ -906,7 +1047,7 @@ div.note_buttons span.fa{
 color:lightgrey;
 background:none;
 }
-div.appointment_notes.active div.note_buttons span.fa{
+div.form_notes.active div.note_buttons span.fa{
 color:black;
 background:none;
 }
@@ -948,7 +1089,7 @@ color:skyblue;
 
 
 
-/*APPOINTMENT PAGE - SIGNATURE + PHOTO*/
+/*FORM PAGE - SIGNATURE + PHOTO*/
 
 div.signature_panel,
 div.photo_panel{
@@ -1003,5 +1144,3 @@ display:block;
 height:100%;
 width:100%;
 }
-
-
